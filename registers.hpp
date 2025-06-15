@@ -16,4 +16,13 @@ struct Registers {
   bool operator!=(const Registers& other) const {
     return !(*this == other);
   }
+
+  friend std::ostream& operator<<(std::ostream& o, const Registers& reg) {
+    o << std::showbase << std::hex
+      << "pc=" << (int)reg.pc
+      << ", A=" << (int)reg.A
+      << ", X=" << (int)reg.X
+      << ", Y=" << (int)reg.Y;
+    return o;
+  }
 };

@@ -63,8 +63,8 @@ class CPU : public sc_module {
     { OP_BRK,     { "brk", &CPU::brk, AddressingMode::Implied } },
     { OP_JMP_ABS, { "jmp", &CPU::jmp, AddressingMode::Absolute } },
     { OP_STA_ZPG, { "sta", &CPU::sta, AddressingMode::ZeroPage } },
-    { OP_LDA_IMM, { "lda", &CPU::lda, AddressingMode::Immediate } },
     { OP_LDA_ZPG, { "lda", &CPU::lda, AddressingMode::ZeroPage } },
+    { OP_LDA_IMM, { "lda", &CPU::lda, AddressingMode::Immediate } },
     { OP_NOP,     { "nop", &CPU::nop, AddressingMode::Implied } },
   };
 
@@ -94,7 +94,7 @@ class CPU : public sc_module {
     return memory_transaction();
   }
 
-  // Read one byte of memory and dont progress the pc
+  // Write one byte of memory
   mem_data_t write_to_memory(mem_addr_t address, mem_data_t data) {
     out.address = address;
     out.write_data = data;
@@ -141,7 +141,7 @@ class CPU : public sc_module {
     }
   }
 
-  // Print a byte stored in memory
+  // Load a byte stored in memory to the A register
   void lda(const Instruction& instruction) {
     if (instruction.mode == AddressingMode::ZeroPage) {
       mem_addr_t source_address = resolve_address(instruction);

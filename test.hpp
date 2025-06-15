@@ -1,12 +1,19 @@
 #include <systemc>
 #include "simulation.hpp"
 
-static void run_test(std::string&& name,
-              uint64_t cycles,
+using TestFunction = bool (*)(std::string name);
+
+struct TestCase {
+  std::string name;
+  TestFunction function;
+};
+
+static bool run_test(std::string&& name,
+              uint64_t expected_cycles,
               mem_t& start_memory,
-              mem_t& end_memory,
+              mem_t& expected_memory,
               Registers& start_registers,
-              Registers& end_registers) {
+              Registers& expected_registers) {
 
   bool success = true;
   Simulation simulation;
@@ -15,34 +22,57 @@ static void run_test(std::string&& name,
   simulation.memory.set_memory(std::move(start_memory));
   simulation.step(1);
   uint64_t start_cycles = simulation.cpu.get_cycle_count();
-  simulation.cpu.set_logging(true);
 
-  while (simulation.cpu.get_cycle_count() < start_cycles + cycles
+  while (simulation.cpu.get_cycle_count() < start_cycles + expected_cycles
          && !simulation.cpu.is_halted()) {
     simulation.step(1);
   }
   uint64_t end_cycles = simulation.cpu.get_cycle_count();
 
-  if (end_registers != simulation.cpu.copy_registers()) {
+  Registers actual_registers = simulation.cpu.copy_registers();
+  mem_t actual_memory = simulation.memory.copy_memory();
+  uint64_t actual_cycles = end_cycles - start_cycles;
+
+  if (expected_registers != actual_registers) {
     std::cout << name << ": register deviation!" << std::endl;
     success = false;
-    printf("%d : %d\n",simulation.cpu.copy_registers().pc, end_registers.pc);
-    printf("%d : %d\n",simulation.cpu.copy_registers().A, end_registers.A);
+    std::cout << "expected: " << expected_registers << std::endl;
+    std::cout << "actual  : " << actual_registers << std::endl;
   }
 
-  if (end_memory != simulation.memory.copy_memory()) {
+  if (expected_memory != actual_memory) {
     std::cout << name << ": memory deviation!" << std::endl;
     success = false;
+    assert(expected_memory.size() == actual_memory.size());
+
+    std::cout << name << " mem diff: [<addr>]=<actual>(<expected>)"
+              << std::endl;
+    uint32_t diff_limit = 10;
+    for (size_t i = 0; i < expected_memory.size(); i++) {
+      if (expected_memory[i] != actual_memory[i]) {
+        std::cout << std::hex << std::showbase
+                  << "[" << i << "]=" << (int)actual_memory[i]
+                  << "(" << (int)expected_memory[i] << ")" << std::endl;
+        diff_limit--;
+      }
+      if (diff_limit == 0) {
+        std::cout << "..." << std::endl;
+        break;
+      }
+    }
   }
 
-  if (cycles != end_cycles - start_cycles) {
-    std::cout << name << ": cycle count deviation! Expected: "
-              << cycles << " Have: " << end_cycles - start_cycles
-              << std::endl;
+  if (expected_cycles != actual_cycles) {
+    std::cout << name << ": cycle count deviation!" << std::endl << "Actual: "
+              << actual_cycles << " expected: " << expected_cycles << std::endl;
     success = false;
   }
 
   if (success) {
     std::cout << "[+] " << name << " passed." << std::endl;
+  } else {
+    std::cout << "[!] " << name << " failed." << std::endl;
   }
+
+  return success;
 }
