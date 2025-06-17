@@ -64,6 +64,18 @@ bool test_nop(std::string name) {
   return run_test(std::move(name), cycles, start_memory, end_memory, start_registers, end_registers);
 }
 
+bool test_adc_imm(std::string name) {
+  uint64_t cycles = 2;
+
+  mem_t start_memory = { OP_ADC_IMM, 0xf0 };
+  mem_t end_memory = start_memory;
+
+  Registers start_registers = { .A = 0x80, .P.C = 1 };
+  Registers end_registers = { .A = 0x71, .P.V = 1, .P.C = 1, .pc = 0x2 };
+
+  return run_test(std::move(name), cycles, start_memory, end_memory, start_registers, end_registers);
+}
+
 
 
 std::vector<TestCase> test_cases = {
@@ -71,6 +83,7 @@ std::vector<TestCase> test_cases = {
   { "sta_zpg", test_sta_zpg },
   { "lda_zpg", test_lda_zpg },
   { "lda_imm", test_lda_imm },
+  { "adc_imm", test_adc_imm },
   { "nop",     test_nop },
 };
 

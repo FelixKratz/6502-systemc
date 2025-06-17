@@ -19,6 +19,7 @@ enum OPCodes : opcode_t {
   OP_STA_ZPG = 0x85, // sta $addr
   OP_LDA_ZPG = 0xA5, // lda $addr
   OP_LDA_IMM = 0xA9, // lda #imm
+  OP_ADC_IMM = 0x69, // adc #imm
   OP_NOP     = 0xEA, // nop
 };
 
@@ -65,6 +66,7 @@ class CPU : public sc_module {
     { OP_STA_ZPG, { "sta", &CPU::sta, AddressingMode::ZeroPage } },
     { OP_LDA_ZPG, { "lda", &CPU::lda, AddressingMode::ZeroPage } },
     { OP_LDA_IMM, { "lda", &CPU::lda, AddressingMode::Immediate } },
+    { OP_ADC_IMM, { "adc", &CPU::adc, AddressingMode::Immediate } },
     { OP_NOP,     { "nop", &CPU::nop, AddressingMode::Implied } },
   };
 
@@ -83,7 +85,6 @@ class CPU : public sc_module {
     wait();
     mem_data_t data = in.read_data;
     out.req = false;
-
     return data;
   }
 
@@ -126,6 +127,30 @@ class CPU : public sc_module {
         return fetch<mem_addr_t>();
       default:
         return 0;  // or error
+    }
+  }
+
+  void adc(const Instruction& instruction) {
+    mem_data_t M = 0;
+
+    if (instruction.mode == AddressingMode::Immediate) {
+      M = fetch<mem_data_t>();
+    } else {
+      mem_addr_t address = resolve_address(instruction);
+      M = read_from_memory(address);
+    }
+
+    uint16_t sum = static_cast<uint16_t>(registers.A) + M + registers.P.C;
+
+    registers.P.C = sum > 0xff;
+    registers.P.Z = (sum & 0xff) == 0;
+    registers.P.N = (sum & 0x80) != 0;
+    registers.P.V = (~(registers.A ^ M) & (registers.A ^ static_cast<uint8_t>(sum)) & 0x80) != 0;
+
+    registers.A = static_cast<uint8_t>(sum);
+
+    if (logging) {
+      std::cout << sc_time_stamp() << ": adc " << (int)M << " -> A=" << std::hex << (int)registers.A << std::dec << "\n";
     }
   }
 
