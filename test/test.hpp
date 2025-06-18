@@ -35,7 +35,7 @@ static bool run_test(std::string&& name,
   uint64_t actual_cycles = end_cycles - start_cycles;
 
   if (expected_registers != actual_registers) {
-    std::cout << name << ": register deviation!" << std::endl;
+    std::cout << std::endl << name << ": register deviation!" << std::endl;
     success = false;
     std::cout << "expected: " << expected_registers << std::endl;
     std::cout << "actual  : " << actual_registers << std::endl;
@@ -46,7 +46,7 @@ static bool run_test(std::string&& name,
     success = false;
     assert(expected_memory.size() == actual_memory.size());
 
-    std::cout << name << " mem diff: [<addr>]=<actual>(<expected>)"
+    std::cout << std::endl << name << " mem diff: [<addr>]=<actual>(<expected>)"
               << std::endl;
     uint32_t diff_limit = 10;
     for (size_t i = 0; i < expected_memory.size(); i++) {
@@ -64,7 +64,7 @@ static bool run_test(std::string&& name,
   }
 
   if (expected_cycles != actual_cycles) {
-    std::cout << name << ": cycle count deviation!" << std::endl << "Actual: "
+    std::cout << std::endl << name << ": cycle count deviation!" << std::endl << "Actual: "
               << actual_cycles << " expected: " << expected_cycles << std::endl;
     success = false;
   }

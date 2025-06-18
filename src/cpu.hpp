@@ -92,9 +92,25 @@ class CPU : public sc_module {
     return result;
   }
 
+  mem_addr_t bus_add_offset(const mem_addr_t base, const mem_addr_t offset) {
+    mem_addr_t result = base + offset;
+    if ((base & 0xff00) != (result & 0xff00)) wait(); // Page-cross cycle
+    return result;
+  }
+
   mem_addr_zp_t bus_add_offset(const mem_addr_zp_t base, const mem_addr_zp_t offset) {
     wait();
-    return base + offset;
+    return static_cast<mem_addr_zp_t>(base + offset);
+  }
+
+  mem_addr_t resolve_indirection(const mem_addr_zp_t iaddr) {
+    mem_addr_t lo_byte_addr = iaddr;
+    mem_addr_t hi_byte_addr = static_cast<mem_addr_zp_t>(iaddr + 1);
+    mem_data_t lo_byte = read_from_memory(lo_byte_addr);
+    mem_data_t hi_byte = read_from_memory(hi_byte_addr);
+    mem_addr_t eaddr = static_cast<mem_addr_t>(lo_byte)
+                       | (static_cast<mem_addr_t>(hi_byte) << 8);
+    return eaddr;
   }
 
   mem_addr_t fetch_address(const AddressingMode mode) {
@@ -116,6 +132,36 @@ class CPU : public sc_module {
 
       case AddressingMode::Absolute: {
         result = fetch<mem_addr_t>();
+        break;
+      }
+
+      case AddressingMode::AbsoluteX: {
+        mem_addr_t base = fetch<mem_addr_t>();
+        mem_addr_t offset = static_cast<mem_addr_t>(registers.X);
+        result = bus_add_offset(base, offset);
+        break;
+      }
+
+      case AddressingMode::AbsoluteY: {
+        mem_addr_t base = fetch<mem_addr_t>();
+        mem_addr_t offset = static_cast<mem_addr_t>(registers.Y);
+        result = bus_add_offset(base, offset);
+        break;
+      }
+
+      case AddressingMode::IndirectX: {
+        mem_addr_zp_t base = fetch<mem_addr_zp_t>();
+        mem_addr_zp_t offset = static_cast<mem_addr_zp_t>(registers.X);
+        mem_addr_zp_t iaddr = bus_add_offset(base, offset);
+        result = resolve_indirection(iaddr);
+        break;
+      }
+
+      case AddressingMode::IndirectY: {
+        mem_addr_zp_t iaddr = fetch<mem_addr_zp_t>();
+        mem_addr_t base = resolve_indirection(iaddr);
+        mem_addr_t offset = registers.Y;
+        result = bus_add_offset(base, offset);
         break;
       }
 
@@ -202,6 +248,13 @@ class CPU : public sc_module {
     },
     { "adc", &CPU::adc, {
         { OP_ADC_IMM, Immediate },
+        { OP_ADC_ZPG, ZeroPage },
+        { OP_ADC_ABS, Absolute },
+        { OP_ADC_ABX, AbsoluteX },
+        { OP_ADC_ABY, AbsoluteY },
+        { OP_ADC_ZPX, ZeroPageX },
+        { OP_ADC_INX, IndirectX },
+        { OP_ADC_INY, IndirectY },
       }
     },
     { "nop", &CPU::nop, {
