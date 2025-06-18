@@ -20,6 +20,7 @@ static bool run_test(std::string&& name,
 
   simulation.cpu.set_registers(start_registers);
   simulation.memory.set_memory(std::move(start_memory));
+  simulation.cpu.set_logging(true);
   simulation.step(1);
   uint64_t start_cycles = simulation.cpu.get_cycle_count();
 

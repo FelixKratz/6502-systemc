@@ -19,3 +19,7 @@ echo ""
 echo "Test Summary:"
 echo "Failed: $FAIL / $TEST_CASE_COUNT"
 echo "Passed: $PASS / $TEST_CASE_COUNT"
+
+if  [ ! $FAIL -eq 0 ]; then
+	exit 1
+fi

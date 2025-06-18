@@ -1,33 +1,6 @@
 #include <systemc.h>
 #include "registers.hpp"
-#include "types.hpp"
-
-class CPU;
-struct Instruction;
-using InstructionHandler = void(CPU::*)(const Instruction&);
-
-enum AddressingMode : uint8_t {
-  Implied,
-  Immediate,
-  ZeroPage,
-  Absolute
-};
-
-enum OPCodes : opcode_t {
-  OP_BRK     = 0x00, // brk
-  OP_JMP_ABS = 0x4C, // jmp <addr>
-  OP_STA_ZPG = 0x85, // sta $addr
-  OP_LDA_ZPG = 0xA5, // lda $addr
-  OP_LDA_IMM = 0xA9, // lda #imm
-  OP_ADC_IMM = 0x69, // adc #imm
-  OP_NOP     = 0xEA, // nop
-};
-
-struct Instruction {
-  std::string name;
-  InstructionHandler handler;
-  AddressingMode mode;
-};
+#include "instruction.hpp"
 
 class CPU : public sc_module {
   public:
@@ -46,29 +19,28 @@ class CPU : public sc_module {
   CPU(sc_module_name name) : sc_module(name) {
     SC_THREAD(execute);
     sensitive << in.clock.pos();
+
+    for (const auto& instruction_group : instruction_set) {
+      for (const auto& [opcode, _] : instruction_group.instructions) {
+        opcode_map[opcode] = &instruction_group;
+      }
+    }
   }
 
-  bool is_halted() { return halted; };
-  Registers copy_registers() { return registers; };
-  uint64_t get_cycle_count() { return cycle_count; };
   void set_logging(bool log) { logging = log; };
   void set_registers(Registers& reg) { registers = reg; };
 
+  bool is_halted() const { return halted; };
+  Registers copy_registers() const { return registers; };
+  uint64_t get_cycle_count() const { return cycle_count; };
+
   private:
+  Registers registers;
   bool halted = false;
   bool logging = false;
-  Registers registers;
   uint64_t cycle_count = 0;
 
-  const std::unordered_map<opcode_t, Instruction> opcode_handlers = {
-    { OP_BRK,     { "brk", &CPU::brk, AddressingMode::Implied } },
-    { OP_JMP_ABS, { "jmp", &CPU::jmp, AddressingMode::Absolute } },
-    { OP_STA_ZPG, { "sta", &CPU::sta, AddressingMode::ZeroPage } },
-    { OP_LDA_ZPG, { "lda", &CPU::lda, AddressingMode::ZeroPage } },
-    { OP_LDA_IMM, { "lda", &CPU::lda, AddressingMode::Immediate } },
-    { OP_ADC_IMM, { "adc", &CPU::adc, AddressingMode::Immediate } },
-    { OP_NOP,     { "nop", &CPU::nop, AddressingMode::Implied } },
-  };
+  std::unordered_map<opcode_t, const InstructionGroup*> opcode_map;
 
   // Just a wrapper around wait to count cpu cycles
   void wait() {
@@ -89,17 +61,18 @@ class CPU : public sc_module {
   }
 
   // Read one byte of memory and dont progress the pc
-  mem_data_t read_from_memory(mem_addr_t source_address) {
+  mem_data_t read_from_memory(const mem_addr_t source_address) {
     out.address = source_address;
     out.write_flag = false;
     return memory_transaction();
   }
 
   // Write one byte of memory
-  mem_data_t write_to_memory(mem_addr_t address, mem_data_t data) {
+  mem_data_t write_to_memory(const mem_addr_t address, const mem_data_t data) {
     out.address = address;
     out.write_data = data;
     out.write_flag = true;
+    if (logging) std::cout << " -> [" << (int)address << "] = " << (int)data;
     return memory_transaction();
   }
 
@@ -119,101 +92,53 @@ class CPU : public sc_module {
     return result;
   }
 
-  mem_addr_t resolve_address(const Instruction& instruction) {
-    switch(instruction.mode) {
-      case AddressingMode::ZeroPage:
-        return fetch<mem_addr_zp_t>();
-      case AddressingMode::Absolute:
-        return fetch<mem_addr_t>();
-      default:
-        return 0;  // or error
-    }
-  }
-
-  void adc(const Instruction& instruction) {
-    mem_data_t M = 0;
-
-    if (instruction.mode == AddressingMode::Immediate) {
-      M = fetch<mem_data_t>();
-    } else {
-      mem_addr_t address = resolve_address(instruction);
-      M = read_from_memory(address);
-    }
-
-    uint16_t sum = static_cast<uint16_t>(registers.A) + M + registers.P.C;
-
-    registers.P.C = sum > 0xff;
-    registers.P.Z = (sum & 0xff) == 0;
-    registers.P.N = (sum & 0x80) != 0;
-    registers.P.V = (~(registers.A ^ M) & (registers.A ^ static_cast<uint8_t>(sum)) & 0x80) != 0;
-
-    registers.A = static_cast<uint8_t>(sum);
-
-    if (logging) {
-      std::cout << sc_time_stamp() << ": adc " << (int)M << " -> A=" << std::hex << (int)registers.A << std::dec << "\n";
-    }
-  }
-
-  // Store the accumulator in memory
-  void sta(const Instruction& instruction) {
-    mem_addr_t destination = resolve_address(instruction);
-    write_to_memory(destination, registers.A);
-
-    if (logging) {
-      std::cout << sc_time_stamp() << ": " << instruction.name
-                << " " << (int)destination << ", " << (int)registers.A
-                << std::endl;
-    }
-  }
-
-  // Load a byte stored in memory to the A register
-  void lda(const Instruction& instruction) {
-    if (instruction.mode == AddressingMode::ZeroPage) {
-      mem_addr_t source_address = resolve_address(instruction);
-      registers.A = read_from_memory(source_address);
-
-      if (logging) {
-        std::cout << sc_time_stamp() << ": " << instruction.name
-                  << " "  << (int)source_address << " -> "
-                  << (int)registers.A << std::endl;
-      }
-    } else if (instruction.mode == AddressingMode::Immediate) {
-      registers.A = fetch<mem_data_t>();
-      if (logging) {
-        std::cout << sc_time_stamp() << ": " << instruction.name
-                  << " #" << (int)registers.A << std::endl;
-      }
-    }
-  }
-
-  // Perform a jump of the pc
-  void jmp(const Instruction& instruction) {
-    registers.pc = resolve_address(instruction);
-
-    if (logging) {
-      std::cout << sc_time_stamp() << ": jmp " << (int)registers.pc
-                << std::endl;
-    }
-  }
-
-  // Halt the CPU
-  void brk(const Instruction& instruction) {
-    // brk actually takes 7 instructions, which we model later
-    for (int i = 0; i < 6; i++) wait();
-    halted = true;
-
-    if (logging) {
-      std::cout << sc_time_stamp() << ": brk" << std::endl;
-    }
-  }
-
-  // Do nothing, just wait
-  void nop(const Instruction& instruction) {
+  mem_addr_zp_t bus_add_offset(const mem_addr_zp_t base, const mem_addr_zp_t offset) {
     wait();
+    return base + offset;
+  }
 
-    if (logging) {
-      std::cout << sc_time_stamp() << ": nop" << std::endl;
+  mem_addr_t fetch_address(const AddressingMode mode) {
+    // All address manipulations use a bus cycle.
+    mem_addr_t result;
+    switch(mode) {
+
+      case AddressingMode::ZeroPage: {
+        result = static_cast<mem_addr_t>(fetch<mem_addr_zp_t>());
+        break;
+      }
+
+      case AddressingMode::ZeroPageX: {
+        mem_addr_zp_t base = fetch<mem_addr_zp_t>();
+        mem_addr_zp_t offset = static_cast<mem_addr_zp_t>(registers.X);
+        result = static_cast<mem_addr_t>(bus_add_offset(base, offset));
+        break;
+      }
+
+      case AddressingMode::Absolute: {
+        result = fetch<mem_addr_t>();
+        break;
+      }
+
+      default:
+        throw std::logic_error("Invalid addressing mode!");
     }
+
+    if (logging) std::cout << " $" << (int)result;
+    return result;
+  }
+
+  mem_data_t resolve_operand_data(const AddressingMode mode) {
+    if (mode == AddressingMode::Immediate) {
+      mem_data_t result = fetch<mem_data_t>();
+      if (logging) std::cout << " #" << (int)result;
+      return result;
+    }
+
+    mem_addr_t address = fetch_address(mode);
+    mem_data_t result = read_from_memory(address);
+
+    if (logging) std::cout << " -> " << (int)result;
+    return result;
   }
 
   // Core loop of the CPU
@@ -221,24 +146,105 @@ class CPU : public sc_module {
     while (!halted) {
       wait();
       uint64_t cycles_start = cycle_count;
-      opcode_t opcode = static_cast<OPCodes>(fetch<opcode_t>());
-      auto function_map_it = opcode_handlers.find(opcode);
 
-      if (function_map_it != opcode_handlers.end()) {
+      opcode_t opcode = fetch<opcode_t>();
+      auto function_map_it = opcode_map.find(opcode);
+
+      if (function_map_it != opcode_map.end()) {
+        if (logging) {
+          std::cout << std::setw(8) << sc_time_stamp() << ": "
+                    << std::showbase << std::hex
+                    << function_map_it->second->name;
+        }
+
+        const InstructionGroup* group = function_map_it->second;
+        AddressingMode mode = group->get_mode(opcode);
+        InstructionHandler handler = function_map_it->second->handler;
+
         // Call the OPCode handler function
-        (this->*(function_map_it->second.handler))(function_map_it->second);
-        uint64_t cycles_end = cycle_count;
+        (this->*handler)(mode);
 
         if (logging) {
-          std::cout << function_map_it->second.name << " took "
-                    << cycles_end - cycles_start << " cycles"
+          uint64_t cycles_end = cycle_count;
+          std::cout << std::noshowbase << std::dec
+                    << " (" << cycles_end - cycles_start << " cycles)"
                     << std::endl << std::endl;
         }
       }
       else {
-          std::cout << sc_time_stamp() << ": Unknown opcode " << (int)opcode << std::endl;
+          std::cout << sc_time_stamp() << ": Unknown opcode "
+                    << (int)opcode << std::endl;
           halted = true;
       }
     };
+  }
+
+  /* Implementation of the instruction set */
+  const std::vector<const InstructionGroup> instruction_set = {
+    { "brk", &CPU::brk, {
+        { OP_BRK, Implied },
+      }
+    },
+    { "jmp", &CPU::jmp, {
+        { OP_JMP_ABS, Absolute },
+      }
+    },
+    { "sta", &CPU::sta, {
+        { OP_STA_ZPG, ZeroPage },
+        { OP_STA_ZPX, ZeroPageX },
+      }
+    },
+    { "lda", &CPU::lda, {
+        { OP_LDA_ZPG, ZeroPage },
+        { OP_LDA_ZPX, ZeroPageX },
+        { OP_LDA_IMM, Immediate },
+      }
+    },
+    { "adc", &CPU::adc, {
+        { OP_ADC_IMM, Immediate },
+      }
+    },
+    { "nop", &CPU::nop, {
+        { OP_NOP, Immediate },
+      }
+    },
+  };
+
+  void adc(const AddressingMode mode) {
+    mem_data_t M = resolve_operand_data(mode);
+    uint16_t sum = static_cast<uint16_t>(registers.A) + M + registers.P.C;
+
+    registers.P.C = sum > 0xff;
+    registers.P.Z = (sum & 0xff) == 0;
+    registers.P.N = (sum & 0x80) != 0;
+    registers.P.V = (~(registers.A ^ M) & (registers.A ^ static_cast<uint8_t>(sum)) & 0x80) != 0;
+
+    registers.A = static_cast<mem_data_t>(sum);
+  }
+
+  void sta(const AddressingMode mode) {
+    mem_addr_t destination = fetch_address(mode);
+    write_to_memory(destination, registers.A);
+  }
+
+  void lda(const AddressingMode mode) {
+    registers.A = resolve_operand_data(mode);
+    registers.P.Z = registers.A == 0;
+    registers.P.N = (registers.A & 0x80) != 0;
+  }
+
+  void jmp(const AddressingMode mode) {
+    registers.pc = fetch_address(mode);
+  }
+
+  void brk(const AddressingMode mode) {
+    // brk actually takes 7 instructions, which we model later
+    for (int i = 0; i < 6; i++) wait();
+    registers.P.B = true;
+    halted = true;
+  }
+
+  void nop(const AddressingMode _) {
+    wait();
   }
 };
