@@ -152,7 +152,7 @@ class CPU : public sc_module {
 
       if (function_map_it != opcode_map.end()) {
         if (logging) {
-          std::cout << std::setw(8) << sc_time_stamp() << ": "
+          std::cout << std::endl << std::setw(8) << sc_time_stamp() << ": "
                     << std::showbase << std::hex
                     << function_map_it->second->name;
         }
@@ -168,7 +168,7 @@ class CPU : public sc_module {
           uint64_t cycles_end = cycle_count;
           std::cout << std::noshowbase << std::dec
                     << " (" << cycles_end - cycles_start << " cycles)"
-                    << std::endl << std::endl;
+                    << std::endl;
         }
       }
       else {

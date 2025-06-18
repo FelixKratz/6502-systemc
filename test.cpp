@@ -74,7 +74,7 @@ bool test_lda_imm(std::string name) {
   mem_t end_memory = start_memory;
 
   Registers start_registers = {};
-  Registers end_registers = { .A = 0xff, .pc = 0x2 };
+  Registers end_registers = { .A = 0xff, .pc = 0x2, .P.N = 1 };
 
   return run_test(std::move(name), cycles, start_memory, end_memory, start_registers, end_registers);
 }
