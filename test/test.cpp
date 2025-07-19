@@ -7,8 +7,15 @@
 
 std::vector<TestCase> test_cases = {
   { "jmp_abs", test_jmp_abs },
+
   { "sta_zpg", test_sta_zpg },
   { "sta_zpx", test_sta_zpx },
+  { "sta_abs", test_sta_abs },
+  { "sta_abx", test_sta_abx },
+  { "sta_aby", test_sta_aby },
+  { "sta_inx", test_sta_inx },
+  { "sta_iny", test_sta_iny },
+
   { "lda_abs", test_lda_abs },
   { "lda_aby", test_lda_aby },
   { "lda_abx", test_lda_abx },
@@ -17,6 +24,7 @@ std::vector<TestCase> test_cases = {
   { "lda_zpg", test_lda_zpg },
   { "lda_zpx", test_lda_zpx },
   { "lda_imm", test_lda_imm },
+
   { "adc_imm", test_adc_imm },
   { "adc_zpg", test_adc_zpg },
   { "adc_abs", test_adc_abs },
@@ -24,6 +32,7 @@ std::vector<TestCase> test_cases = {
   { "adc_zpx", test_adc_zpx },
   { "adc_inx", test_adc_inx },
   { "adc_iny", test_adc_iny },
+
   { "nop",     test_nop },
 };
 

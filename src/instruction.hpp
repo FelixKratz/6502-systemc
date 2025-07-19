@@ -13,8 +13,13 @@ enum OPCodes : opcode_t {
   OP_ADC_ABY = 0x79, // adc <addr>,Y
   OP_ADC_ABX = 0x7D, // adc <addr>,X
 
+  OP_STA_INX = 0x81, // sta ($addr,X)
   OP_STA_ZPG = 0x85, // sta $addr
+  OP_STA_ABS = 0x8D, // sta <addr>
+  OP_STA_INY = 0x91, // sta ($addr),Y
   OP_STA_ZPX = 0x95, // sta $addr,X
+  OP_STA_ABY = 0x99, // sta <addr>,Y
+  OP_STA_ABX = 0x9D, // sta <addr>,X
 
   OP_LDA_INX = 0xA1, // lda ($addr,X)
   OP_LDA_ZPG = 0xA5, // lda $addr
