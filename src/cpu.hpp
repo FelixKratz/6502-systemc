@@ -92,13 +92,15 @@ class CPU : public sc_module {
     return result;
   }
 
-  mem_addr_t bus_add_offset(const mem_addr_t base, const mem_addr_t offset) {
+  mem_addr_t bus_add_offset(const mem_addr_t base, const mem_addr_t offset, const bool read_mode, const bool penalty_cycle) {
     mem_addr_t result = base + offset;
-    if ((base & 0xff00) != (result & 0xff00)) wait(); // Page-cross cycle
+    if (read_mode && ((base & 0xff00) != (result & 0xff00))) wait(); // Page-cross cycle
+    if (penalty_cycle) wait();
+
     return result;
   }
 
-  mem_addr_zp_t bus_add_offset(const mem_addr_zp_t base, const mem_addr_zp_t offset) {
+  mem_addr_zp_t bus_add_zp_offset(const mem_addr_zp_t base, const mem_addr_zp_t offset) {
     wait();
     return static_cast<mem_addr_zp_t>(base + offset);
   }
@@ -113,7 +115,7 @@ class CPU : public sc_module {
     return eaddr;
   }
 
-  mem_addr_t fetch_address(const AddressingMode mode) {
+  mem_addr_t fetch_address(const AddressingMode mode, const bool read_mode) {
     // All address manipulations use a bus cycle.
     mem_addr_t result;
     switch(mode) {
@@ -126,7 +128,7 @@ class CPU : public sc_module {
       case AddressingMode::ZeroPageX: {
         mem_addr_zp_t base = fetch<mem_addr_zp_t>();
         mem_addr_zp_t offset = static_cast<mem_addr_zp_t>(registers.X);
-        result = static_cast<mem_addr_t>(bus_add_offset(base, offset));
+        result = static_cast<mem_addr_t>(bus_add_zp_offset(base, offset));
         break;
       }
 
@@ -138,21 +140,21 @@ class CPU : public sc_module {
       case AddressingMode::AbsoluteX: {
         mem_addr_t base = fetch<mem_addr_t>();
         mem_addr_t offset = static_cast<mem_addr_t>(registers.X);
-        result = bus_add_offset(base, offset);
+        result = bus_add_offset(base, offset, read_mode, !read_mode);
         break;
       }
 
       case AddressingMode::AbsoluteY: {
         mem_addr_t base = fetch<mem_addr_t>();
         mem_addr_t offset = static_cast<mem_addr_t>(registers.Y);
-        result = bus_add_offset(base, offset);
+        result = bus_add_offset(base, offset, read_mode, !read_mode);
         break;
       }
 
       case AddressingMode::IndirectX: {
         mem_addr_zp_t base = fetch<mem_addr_zp_t>();
         mem_addr_zp_t offset = static_cast<mem_addr_zp_t>(registers.X);
-        mem_addr_zp_t iaddr = bus_add_offset(base, offset);
+        mem_addr_zp_t iaddr = bus_add_zp_offset(base, offset);
         result = resolve_indirection(iaddr);
         break;
       }
@@ -161,7 +163,7 @@ class CPU : public sc_module {
         mem_addr_zp_t iaddr = fetch<mem_addr_zp_t>();
         mem_addr_t base = resolve_indirection(iaddr);
         mem_addr_t offset = registers.Y;
-        result = bus_add_offset(base, offset);
+        result = bus_add_offset(base, offset, read_mode, !read_mode);
         break;
       }
 
@@ -180,7 +182,7 @@ class CPU : public sc_module {
       return result;
     }
 
-    mem_addr_t address = fetch_address(mode);
+    mem_addr_t address = fetch_address(mode, true);
     mem_data_t result = read_from_memory(address);
 
     if (logging) std::cout << " -> " << (int)result;
@@ -236,15 +238,20 @@ class CPU : public sc_module {
       }
     },
     { "sta", &CPU::sta, {
-        { OP_STA_ZPG, ZeroPage },
+        { OP_STA_ZPG, ZeroPage  },
         { OP_STA_ZPX, ZeroPageX },
+        { OP_STA_ABS, Absolute  },
+        { OP_STA_ABX, AbsoluteX },
+        { OP_STA_ABY, AbsoluteY },
+        { OP_STA_INX, IndirectX },
+        { OP_STA_INY, IndirectY },
       }
     },
     { "lda", &CPU::lda, {
         { OP_LDA_IMM, Immediate },
-        { OP_LDA_ZPG, ZeroPage },
+        { OP_LDA_ZPG, ZeroPage  },
         { OP_LDA_ZPX, ZeroPageX },
-        { OP_LDA_ABS, Absolute },
+        { OP_LDA_ABS, Absolute  },
         { OP_LDA_ABX, AbsoluteX },
         { OP_LDA_ABY, AbsoluteY },
         { OP_LDA_INX, IndirectX },
@@ -253,8 +260,8 @@ class CPU : public sc_module {
     },
     { "adc", &CPU::adc, {
         { OP_ADC_IMM, Immediate },
-        { OP_ADC_ZPG, ZeroPage },
-        { OP_ADC_ABS, Absolute },
+        { OP_ADC_ZPG, ZeroPage  },
+        { OP_ADC_ABS, Absolute  },
         { OP_ADC_ABX, AbsoluteX },
         { OP_ADC_ABY, AbsoluteY },
         { OP_ADC_ZPX, ZeroPageX },
@@ -281,7 +288,7 @@ class CPU : public sc_module {
   }
 
   void sta(const AddressingMode mode) {
-    mem_addr_t destination = fetch_address(mode);
+    mem_addr_t destination = fetch_address(mode, false);
     write_to_memory(destination, registers.A);
   }
 
@@ -292,7 +299,7 @@ class CPU : public sc_module {
   }
 
   void jmp(const AddressingMode mode) {
-    registers.pc = fetch_address(mode);
+    registers.pc = fetch_address(mode, true);
   }
 
   void brk(const AddressingMode mode) {
