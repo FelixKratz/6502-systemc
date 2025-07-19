@@ -12,6 +12,9 @@ std::vector<TestCase> test_cases = {
   { "jmp_abs", test_jmp_abs },
   { "jmp_ind", test_jmp_ind },
 
+  { "jmp_ind_no_bug", test_jmp_ind_no_bug },
+  { "jmp_abs_low", test_jmp_abs_low_address },
+
   // sta
   { "sta_zpg", test_sta_zpg },
   { "sta_zpx", test_sta_zpx },
@@ -37,7 +40,7 @@ std::vector<TestCase> test_cases = {
 
   { "lda_iny_page_cross", test_lda_iny_page_cross },
   { "lda_abx_page_cross", test_lda_abx_page_cross },
-  { "lda_imm_zero_flag", test_lda_imm_zero_flag},
+  { "lda_imm_zero_flag",  test_lda_imm_zero_flag },
 
   // adc
   { "adc_imm", test_adc_imm },
@@ -55,15 +58,17 @@ std::vector<TestCase> test_cases = {
   { "adc_zpg_carry_out",  test_adc_zpg_carry_out },
 
   // tax
-  { "tax_imp", test_tax_imp },
+  { "tax_imp",      test_tax_imp },
+  { "tax_zero",     test_tax_zero },
+  { "tax_negative", test_tax_negative },
 
   // bcc
-  { "bcc_taken",     test_bcc_taken },
-  { "bcc_not_taken", test_bcc_not_taken },
+  { "bcc_taken",      test_bcc_taken },
+  { "bcc_not_taken",  test_bcc_not_taken },
   { "bcc_page_cross", test_bcc_page_cross },
 
   // nop
-  { "nop",     test_nop },
+  { "nop", test_nop },
 };
 
 int sc_main(int argc, char* argv[]) {
