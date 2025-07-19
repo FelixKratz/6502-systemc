@@ -8,9 +8,11 @@
 #include "bcc.hpp"
 
 std::vector<TestCase> test_cases = {
+  // jmp
   { "jmp_abs", test_jmp_abs },
   { "jmp_ind", test_jmp_ind },
 
+  // sta
   { "sta_zpg", test_sta_zpg },
   { "sta_zpx", test_sta_zpx },
   { "sta_abs", test_sta_abs },
@@ -19,6 +21,11 @@ std::vector<TestCase> test_cases = {
   { "sta_inx", test_sta_inx },
   { "sta_iny", test_sta_iny },
 
+  { "sta_zpx_wraparound", test_sta_zpx_wraparound },
+  { "sta_inx_wraparound", test_sta_inx_wraparound },
+  { "sta_iny_page_cross", test_sta_iny_page_cross },
+
+  // lda
   { "lda_abs", test_lda_abs },
   { "lda_aby", test_lda_aby },
   { "lda_abx", test_lda_abx },
@@ -28,6 +35,11 @@ std::vector<TestCase> test_cases = {
   { "lda_zpx", test_lda_zpx },
   { "lda_imm", test_lda_imm },
 
+  { "lda_iny_page_cross", test_lda_iny_page_cross },
+  { "lda_abx_page_cross", test_lda_abx_page_cross },
+  { "lda_imm_zero_flag", test_lda_imm_zero_flag},
+
+  // adc
   { "adc_imm", test_adc_imm },
   { "adc_zpg", test_adc_zpg },
   { "adc_abs", test_adc_abs },
@@ -36,13 +48,21 @@ std::vector<TestCase> test_cases = {
   { "adc_inx", test_adc_inx },
   { "adc_iny", test_adc_iny },
 
+  { "adc_imm_overflow",   test_adc_imm_overflow },
+  { "adc_imm_zero_carry", test_adc_imm_zero_carry },
+  { "adc_imm_page_cross", test_adc_abs_page_cross },
+  { "adc_iny_page_cross", test_adc_iny_page_cross },
+  { "adc_zpg_carry_out",  test_adc_zpg_carry_out },
+
+  // tax
   { "tax_imp", test_tax_imp },
 
+  // bcc
   { "bcc_taken",     test_bcc_taken },
   { "bcc_not_taken", test_bcc_not_taken },
   { "bcc_page_cross", test_bcc_page_cross },
 
-
+  // nop
   { "nop",     test_nop },
 };
 

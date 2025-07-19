@@ -97,3 +97,47 @@ static bool test_sta_iny(std::string name) {
 
   return run_test(std::move(name), cycles, start_memory, end_memory, start_registers, end_registers);
 }
+static bool test_sta_zpx_wraparound(std::string name) {
+  uint64_t cycles = 4;
+
+  mem_t start_memory = { OP_STA_ZPX, 0xf0 };
+  mem_t end_memory = start_memory;
+  end_memory[0x00] = 0x2a;
+
+  Registers start_registers = { .A = 0x2a, .X = 0x10 };
+  Registers end_registers = { .A = 0x2a, .X = 0x10, .pc = 0x2 };
+
+  return run_test(std::move(name), cycles, start_memory, end_memory, start_registers, end_registers);
+}
+
+static bool test_sta_inx_wraparound(std::string name) {
+  uint64_t cycles = 6;
+
+  mem_t start_memory = { OP_STA_INX, 0xff };
+  start_memory[0x03] = 0x00;
+  start_memory[0x04] = 0x50;
+
+  mem_t end_memory = start_memory;
+  end_memory[0x5000] = 0x2a;
+
+  Registers start_registers = { .A = 0x2a, .X = 0x04 };
+  Registers end_registers = { .A = 0x2a, .X = 0x04, .pc = 0x2 };
+
+  return run_test(std::move(name), cycles, start_memory, end_memory, start_registers, end_registers);
+}
+
+static bool test_sta_iny_page_cross(std::string name) {
+  uint64_t cycles = 6;
+
+  mem_t start_memory = { OP_STA_INY, 0x10 }; // sta ($10),Y
+  start_memory[0x10] = 0xFF;
+  start_memory[0x11] = 0x30;
+
+  mem_t end_memory = start_memory;
+  end_memory[0x31FE] = 0x2a;
+
+  Registers start_registers = { .A = 0x2a, .Y = 0xFF };
+  Registers end_registers = { .A = 0x2a, .Y = 0xFF, .pc = 0x2 };
+
+  return run_test(std::move(name), cycles, start_memory, end_memory, start_registers, end_registers);
+}

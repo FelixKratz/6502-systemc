@@ -113,3 +113,46 @@ static bool test_lda_imm(std::string name) {
 
   return run_test(std::move(name), cycles, start_memory, end_memory, start_registers, end_registers);
 }
+
+static bool test_lda_imm_zero_flag(std::string name) {
+  uint64_t cycles = 2;
+
+  mem_t start_memory = { OP_LDA_IMM, 0x00 };
+  mem_t end_memory = start_memory;
+
+  Registers start_registers = {};
+  Registers end_registers = { .A = 0x00, .pc = 0x2, .P.Z = 1 };
+
+  return run_test(std::move(name), cycles, start_memory, end_memory, start_registers, end_registers);
+}
+
+static bool test_lda_abx_page_cross(std::string name) {
+  uint64_t cycles = 5;
+
+  mem_t start_memory = { OP_LDA_ABX, 0xFD, 0x30 }; // base = $30FD, X = $03 → $3100
+  start_memory[0x3100] = 0x99;
+
+  mem_t end_memory = start_memory;
+
+  Registers start_registers = { .X = 0x03 };
+  Registers end_registers = { .A = 0x99, .X = 0x03, .pc = 0x3, .P.N = 1 };
+
+  return run_test(std::move(name), cycles, start_memory, end_memory, start_registers, end_registers);
+}
+
+
+static bool test_lda_iny_page_cross(std::string name) {
+  uint64_t cycles = 6;
+
+  mem_t start_memory = { OP_LDA_INY, 0x10 }; // ($10),Y
+  start_memory[0x10] = 0xFE;
+  start_memory[0x11] = 0x30;
+  start_memory[0x31FD] = 0x88;
+
+  mem_t end_memory = start_memory;
+
+  Registers start_registers = { .Y = 0xFF };
+  Registers end_registers = { .A = 0x88, .Y = 0xFF, .pc = 0x2, .P.N = 1 };
+
+  return run_test(std::move(name), cycles, start_memory, end_memory, start_registers, end_registers);
+}
