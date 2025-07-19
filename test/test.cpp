@@ -3,7 +3,9 @@
 #include "sta.hpp"
 #include "lda.hpp"
 #include "jmp.hpp"
+#include "tax.hpp"
 #include "nop.hpp"
+#include "bcc.hpp"
 
 std::vector<TestCase> test_cases = {
   { "jmp_abs", test_jmp_abs },
@@ -33,6 +35,13 @@ std::vector<TestCase> test_cases = {
   { "adc_zpx", test_adc_zpx },
   { "adc_inx", test_adc_inx },
   { "adc_iny", test_adc_iny },
+
+  { "tax_imp", test_tax_imp },
+
+  { "bcc_taken",     test_bcc_taken },
+  { "bcc_not_taken", test_bcc_not_taken },
+  { "bcc_page_cross", test_bcc_page_cross },
+
 
   { "nop",     test_nop },
 };

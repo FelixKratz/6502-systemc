@@ -92,9 +92,11 @@ class CPU : public sc_module {
     return result;
   }
 
-  mem_addr_t bus_add_offset(const mem_addr_t base, const mem_addr_t offset, const bool read_mode, const bool penalty_cycle) {
+  mem_addr_t bus_add_offset(const mem_addr_t base, const int16_t offset, const bool read_mode, const bool penalty_cycle) {
     mem_addr_t result = base + offset;
-    if (read_mode && ((base & 0xff00) != (result & 0xff00))) wait(); // Page-cross cycle
+
+    // Page-cross cycle
+    if (read_mode && ((base & 0xff00) != (result & 0xff00))) wait();
     if (penalty_cycle) wait();
 
     return result;
@@ -172,6 +174,12 @@ class CPU : public sc_module {
         mem_addr_t base = resolve_indirection(iaddr);
         mem_addr_t offset = registers.Y;
         result = bus_add_offset(base, offset, read_mode, !read_mode);
+        break;
+      }
+
+      case AddressingMode::Relative: {
+        int8_t offset = static_cast<int8_t>(fetch<mem_data_t>());
+        result = bus_add_offset(registers.pc, offset, true, true);
         break;
       }
 
@@ -278,6 +286,14 @@ class CPU : public sc_module {
         { OP_ADC_INY, IndirectY },
       }
     },
+    { "tax", &CPU::tax, {
+        { OP_TAX_IMP, Implied },
+      }
+    },
+    { "bcc", &CPU::bcc, {
+        { OP_BCC_REL, Relative },
+      }
+    },
     { "nop", &CPU::nop, {
         { OP_NOP, Immediate },
       }
@@ -316,6 +332,22 @@ class CPU : public sc_module {
     for (int i = 0; i < 6; i++) wait();
     registers.P.B = true;
     halted = true;
+  }
+
+  void tax(const AddressingMode mode) {
+    registers.X = registers.A;
+    wait();
+    registers.P.Z = registers.A == 0;
+    registers.P.N = (registers.A & 0x80) != 0;
+  }
+
+  void bcc(const AddressingMode mode) {
+    if (!registers.P.C) {
+      mem_addr_t new_pc = fetch_address(mode, false);
+      registers.pc = new_pc;
+    } else {
+      fetch<mem_addr_zp_t>();
+    }
   }
 
   void nop(const AddressingMode _) {

@@ -2,8 +2,9 @@
 
 enum OPCodes : opcode_t {
   OP_BRK     = 0x00, // brk
+
   OP_JMP_ABS = 0x4C, // jmp <addr>
-  OP_JMP_IND = 0x6C, // jmp <addr>
+  OP_JMP_IND = 0x6C, // jmp (<addr>)
 
   OP_ADC_INX = 0x61, // adc ($addr,X)
   OP_ADC_ZPG = 0x65, // adc $addr
@@ -31,6 +32,10 @@ enum OPCodes : opcode_t {
   OP_LDA_ABY = 0xB9, // lda <addr>,Y
   OP_LDA_ABX = 0xBD, // lda <addr>,X
 
+  OP_BCC_REL = 0x90, // bcc #offset
+
+  OP_TAX_IMP = 0xAA, // tax
+
   OP_NOP     = 0xEA, // nop
 };
 
@@ -44,7 +49,8 @@ enum AddressingMode : mem_data_t {
   AbsoluteY,
   Indirect,
   IndirectX,
-  IndirectY
+  IndirectY,
+  Relative
 };
 
 class CPU;
