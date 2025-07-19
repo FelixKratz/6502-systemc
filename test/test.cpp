@@ -7,6 +7,7 @@
 
 std::vector<TestCase> test_cases = {
   { "jmp_abs", test_jmp_abs },
+  { "jmp_ind", test_jmp_ind },
 
   { "sta_zpg", test_sta_zpg },
   { "sta_zpx", test_sta_zpx },

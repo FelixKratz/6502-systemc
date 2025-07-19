@@ -3,6 +3,7 @@
 enum OPCodes : opcode_t {
   OP_BRK     = 0x00, // brk
   OP_JMP_ABS = 0x4C, // jmp <addr>
+  OP_JMP_IND = 0x6C, // jmp <addr>
 
   OP_ADC_INX = 0x61, // adc ($addr,X)
   OP_ADC_ZPG = 0x65, // adc $addr

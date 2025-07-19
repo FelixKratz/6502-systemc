@@ -105,9 +105,11 @@ class CPU : public sc_module {
     return static_cast<mem_addr_zp_t>(base + offset);
   }
 
-  mem_addr_t resolve_indirection(const mem_addr_zp_t iaddr) {
+  mem_addr_t resolve_indirection(const mem_addr_t iaddr) {
     mem_addr_t lo_byte_addr = iaddr;
-    mem_addr_t hi_byte_addr = static_cast<mem_addr_zp_t>(iaddr + 1);
+    mem_addr_t hi_byte_addr = (iaddr & 0xFF00)
+                              | static_cast<mem_addr_zp_t>(iaddr + 1);
+
     mem_data_t lo_byte = read_from_memory(lo_byte_addr);
     mem_data_t hi_byte = read_from_memory(hi_byte_addr);
     mem_addr_t eaddr = static_cast<mem_addr_t>(lo_byte)
@@ -148,6 +150,12 @@ class CPU : public sc_module {
         mem_addr_t base = fetch<mem_addr_t>();
         mem_addr_t offset = static_cast<mem_addr_t>(registers.Y);
         result = bus_add_offset(base, offset, read_mode, !read_mode);
+        break;
+      }
+
+      case AddressingMode::Indirect: {
+        mem_addr_t iaddr = fetch<mem_addr_t>();
+        result = resolve_indirection(iaddr);
         break;
       }
 
@@ -235,6 +243,7 @@ class CPU : public sc_module {
     },
     { "jmp", &CPU::jmp, {
         { OP_JMP_ABS, Absolute },
+        { OP_JMP_IND, Indirect },
       }
     },
     { "sta", &CPU::sta, {
@@ -299,7 +308,7 @@ class CPU : public sc_module {
   }
 
   void jmp(const AddressingMode mode) {
-    registers.pc = fetch_address(mode, true);
+    registers.pc = fetch_address(mode, false);
   }
 
   void brk(const AddressingMode mode) {
