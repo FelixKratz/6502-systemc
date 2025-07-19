@@ -3,6 +3,7 @@
 enum OPCodes : opcode_t {
   OP_BRK     = 0x00, // brk
   OP_JMP_ABS = 0x4C, // jmp <addr>
+
   OP_ADC_INX = 0x61, // adc ($addr,X)
   OP_ADC_ZPG = 0x65, // adc $addr
   OP_ADC_IMM = 0x69, // adc #imm
@@ -11,11 +12,19 @@ enum OPCodes : opcode_t {
   OP_ADC_ZPX = 0x75, // adc $addr,X
   OP_ADC_ABY = 0x79, // adc <addr>,Y
   OP_ADC_ABX = 0x7D, // adc <addr>,X
+
   OP_STA_ZPG = 0x85, // sta $addr
   OP_STA_ZPX = 0x95, // sta $addr,X
+
+  OP_LDA_INX = 0xA1, // lda ($addr,X)
   OP_LDA_ZPG = 0xA5, // lda $addr
   OP_LDA_IMM = 0xA9, // lda #imm
+  OP_LDA_ABS = 0xAD, // lda <addr>
+  OP_LDA_INY = 0xB1, // lda ($addr),Y
   OP_LDA_ZPX = 0xB5, // lda $addr,X
+  OP_LDA_ABY = 0xB9, // lda <addr>,Y
+  OP_LDA_ABX = 0xBD, // lda <addr>,X
+
   OP_NOP     = 0xEA, // nop
 };
 

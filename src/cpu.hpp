@@ -241,9 +241,14 @@ class CPU : public sc_module {
       }
     },
     { "lda", &CPU::lda, {
+        { OP_LDA_IMM, Immediate },
         { OP_LDA_ZPG, ZeroPage },
         { OP_LDA_ZPX, ZeroPageX },
-        { OP_LDA_IMM, Immediate },
+        { OP_LDA_ABS, Absolute },
+        { OP_LDA_ABX, AbsoluteX },
+        { OP_LDA_ABY, AbsoluteY },
+        { OP_LDA_INX, IndirectX },
+        { OP_LDA_INY, IndirectY },
       }
     },
     { "adc", &CPU::adc, {

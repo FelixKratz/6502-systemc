@@ -3,7 +3,7 @@
 int sc_main(int argc, char* argv[]) {
   Simulation simulation(true);
 
-  mem_addr_t counter = 0;
+  // Load a simple program into memory
   mem_t memory = {
     OP_LDA_IMM, 0x2,
     OP_STA_ZPG, 0xf0,
