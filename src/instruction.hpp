@@ -32,6 +32,18 @@ enum OPCodes : opcode_t {
   OP_LDA_ABY = 0xB9, // lda <addr>,Y
   OP_LDA_ABX = 0xBD, // lda <addr>,X
 
+  OP_LDX_IMM = 0xA2, // ldx #imm
+  OP_LDX_ZPG = 0xA6, // ldx $addr
+  OP_LDX_ZPY = 0xB6, // ldx $addr,Y
+  OP_LDX_ABS = 0xAE, // ldx <addr>
+  OP_LDX_ABY = 0xBE, // ldx <addr>,Y
+
+  OP_LDY_IMM = 0xA0, // ldy #imm
+  OP_LDY_ZPG = 0xA4, // ldy $addr
+  OP_LDY_ZPX = 0xB4, // ldy $addr,X
+  OP_LDY_ABS = 0xAC, // ldy <addr>
+  OP_LDY_ABX = 0xBC, // ldy <addr>,X
+
   OP_BCC_REL = 0x90, // bcc #offset
 
   OP_TAX_IMP = 0xAA, // tax
@@ -44,6 +56,7 @@ enum AddressingMode : mem_data_t {
   Immediate,
   ZeroPage,
   ZeroPageX,
+  ZeroPageY,
   Absolute,
   AbsoluteX,
   AbsoluteY,

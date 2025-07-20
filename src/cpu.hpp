@@ -136,6 +136,13 @@ class CPU : public sc_module {
         break;
       }
 
+      case AddressingMode::ZeroPageY: {
+        mem_addr_zp_t base = fetch<mem_addr_zp_t>();
+        mem_addr_zp_t offset = static_cast<mem_addr_zp_t>(registers.Y);
+        result = static_cast<mem_addr_t>(bus_add_zp_offset(base, offset));
+        break;
+      }
+
       case AddressingMode::Absolute: {
         result = fetch<mem_addr_t>();
         break;
@@ -275,6 +282,22 @@ class CPU : public sc_module {
         { OP_LDA_INY, IndirectY },
       }
     },
+    { "ldx", &CPU::ldx, {
+        { OP_LDX_IMM, Immediate },
+        { OP_LDX_ZPG, ZeroPage  },
+        { OP_LDX_ZPY, ZeroPageY  },
+        { OP_LDX_ABS, Absolute  },
+        { OP_LDX_ABY, AbsoluteY },
+      }
+    },
+    { "ldy", &CPU::ldy, {
+        { OP_LDY_IMM, Immediate },
+        { OP_LDY_ZPG, ZeroPage  },
+        { OP_LDY_ZPX, ZeroPageX  },
+        { OP_LDY_ABS, Absolute  },
+        { OP_LDY_ABX, AbsoluteX },
+      }
+    },
     { "adc", &CPU::adc, {
         { OP_ADC_IMM, Immediate },
         { OP_ADC_ZPG, ZeroPage  },
@@ -317,10 +340,22 @@ class CPU : public sc_module {
     write_to_memory(destination, registers.A);
   }
 
+  void ld_(const AddressingMode mode, mem_data_t& destination) {
+    destination = resolve_operand_data(mode);
+    registers.P.Z = destination == 0;
+    registers.P.N = (destination & 0x80) != 0;
+  }
+
   void lda(const AddressingMode mode) {
-    registers.A = resolve_operand_data(mode);
-    registers.P.Z = registers.A == 0;
-    registers.P.N = (registers.A & 0x80) != 0;
+    ld_(mode, registers.A);
+  }
+
+  void ldx(const AddressingMode mode) {
+    ld_(mode, registers.X);
+  }
+
+  void ldy(const AddressingMode mode) {
+    ld_(mode, registers.Y);
   }
 
   void jmp(const AddressingMode mode) {

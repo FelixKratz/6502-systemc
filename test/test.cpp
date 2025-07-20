@@ -2,6 +2,8 @@
 #include "adc.hpp"
 #include "sta.hpp"
 #include "lda.hpp"
+#include "ldx.hpp"
+#include "ldy.hpp"
 #include "jmp.hpp"
 #include "tax.hpp"
 #include "nop.hpp"
@@ -41,6 +43,28 @@ std::vector<TestCase> test_cases = {
   { "lda_iny_page_cross", test_lda_iny_page_cross },
   { "lda_abx_page_cross", test_lda_abx_page_cross },
   { "lda_imm_zero_flag",  test_lda_imm_zero_flag },
+
+  // ldx
+  { "ldx_imm", test_ldx_imm },
+  { "ldx_zpg", test_ldx_zpg },
+  { "ldx_zpy", test_ldx_zpy },
+  { "ldx_abs", test_ldx_abs },
+  { "ldx_aby", test_ldx_aby },
+
+  { "ldx_aby_page_cross",    test_ldx_aby_page_cross },
+  { "ldx_imm_zero_flag",     test_ldx_imm_zero_flag },
+  { "ldx_imm_negative_flag", test_ldx_imm_negative_flag },
+
+  // ldy
+  { "ldy_imm",              test_ldy_imm },
+  { "ldy_zpg",              test_ldy_zpg },
+  { "ldy_zpx",              test_ldy_zpx },
+  { "ldy_abs",              test_ldy_abs },
+  { "ldy_abx",              test_ldy_abx },
+
+  { "ldy_imm_zero_flag",    test_ldy_imm_zero_flag },
+  { "ldy_abx_page_cross",   test_ldy_abx_page_cross },
+
 
   // adc
   { "adc_imm", test_adc_imm },
