@@ -352,6 +352,15 @@ class CPU : public sc_module {
     registers.A = result;
   }
 
+  void bcc(const AddressingMode mode) {
+    if (!registers.P.C) {
+      mem_addr_t new_pc = fetch_address(mode, false);
+      registers.pc = new_pc;
+    } else {
+      fetch<mem_addr_zp_t>();
+    }
+  }
+
   void store(const AddressingMode mode, const mem_data_t data) {
     mem_addr_t destination = fetch_address(mode, false);
     write_to_memory(destination, data);
@@ -413,13 +422,12 @@ class CPU : public sc_module {
     transfer(registers.A, registers.Y);
   }
 
-  void bcc(const AddressingMode mode) {
-    if (!registers.P.C) {
-      mem_addr_t new_pc = fetch_address(mode, false);
-      registers.pc = new_pc;
-    } else {
-      fetch<mem_addr_zp_t>();
-    }
+  void txa(const AddressingMode mode) {
+    transfer(registers.X, registers.A);
+  }
+
+  void tya(const AddressingMode mode) {
+    transfer(registers.Y, registers.A);
   }
 
   void nop(const AddressingMode _) {

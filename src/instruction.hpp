@@ -56,6 +56,8 @@ enum OPCodes : opcode_t {
 
   OP_TAX_IMP = 0xAA, // tax
   OP_TAY_IMP = 0xBA, // tay
+  OP_TXA_IMP = 0x8A, // txa
+  OP_TYA_IMP = 0x98, // tya
 
   OP_NOP     = 0xEA, // nop
 };
