@@ -329,6 +329,13 @@ class CPU : public sc_module {
     { "sei", &CPU::sei, { { OP_SEI_IMP, Implied  }, } },
     { "clv", &CPU::clv, { { OP_CLV_IMP, Implied  }, } },
     { "bcc", &CPU::bcc, { { OP_BCC_REL, Relative }, } },
+    { "bcs", &CPU::bcs, { { OP_BCS_REL, Relative }, } },
+    { "beq", &CPU::beq, { { OP_BEQ_REL, Relative }, } },
+    { "bne", &CPU::bne, { { OP_BNE_REL, Relative }, } },
+    { "bmi", &CPU::bmi, { { OP_BMI_REL, Relative }, } },
+    { "bpl", &CPU::bpl, { { OP_BPL_REL, Relative }, } },
+    { "bvc", &CPU::bvc, { { OP_BVC_REL, Relative }, } },
+    { "bvs", &CPU::bvs, { { OP_BVS_REL, Relative }, } },
     { "nop", &CPU::nop, { { OP_NOP, Immediate    }, } },
     { "brk", &CPU::brk, { { OP_BRK, Implied      }, } },
   };
@@ -346,13 +353,45 @@ class CPU : public sc_module {
     registers.A = result;
   }
 
-  void bcc(const AddressingMode mode) {
-    if (!registers.P.C) {
+  void branch(const AddressingMode mode, const bool condition) {
+    if (condition) {
       mem_addr_t new_pc = fetch_address(mode, false);
       registers.pc = new_pc;
     } else {
       fetch<mem_addr_zp_t>();
     }
+  }
+
+  void bcc(const AddressingMode mode) {
+    branch(mode, !registers.P.C);
+  }
+
+  void bcs(const AddressingMode mode) {
+    branch(mode, registers.P.C);
+  }
+
+  void bne(const AddressingMode mode) {
+    branch(mode, !registers.P.Z);
+  }
+
+  void beq(const AddressingMode mode) {
+    branch(mode, registers.P.Z);
+  }
+
+  void bpl(const AddressingMode mode) {
+    branch(mode, !registers.P.N);
+  }
+
+  void bmi(const AddressingMode mode) {
+    branch(mode, registers.P.N);
+  }
+
+  void bvc(const AddressingMode mode) {
+    branch(mode, !registers.P.V);
+  }
+
+  void bvs(const AddressingMode mode) {
+    branch(mode, registers.P.V);
   }
 
   void store(const AddressingMode mode, const mem_data_t data) {

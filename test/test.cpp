@@ -15,6 +15,13 @@
 #include "cl_.hpp"
 #include "se_.hpp"
 #include "bcc.hpp"
+#include "bcs.hpp"
+#include "beq.hpp"
+#include "bne.hpp"
+#include "bmi.hpp"
+#include "bpl.hpp"
+#include "bvc.hpp"
+#include "bvs.hpp"
 
 std::vector<TestCase> test_cases = {
   // jmp
@@ -121,6 +128,34 @@ std::vector<TestCase> test_cases = {
   { "bcc_taken",      test_bcc_taken },
   { "bcc_not_taken",  test_bcc_not_taken },
   { "bcc_page_cross", test_bcc_page_cross },
+
+  // bcs
+  { "bcs_taken",      test_bcs_taken },
+  { "bcs_not_taken",  test_bcs_not_taken },
+
+  // beq
+  { "beq_taken",      test_beq_taken },
+  { "beq_not_taken",  test_beq_not_taken },
+
+  // bne
+  { "bne_taken",      test_bne_taken },
+  { "bne_not_taken",  test_bne_not_taken },
+
+  // bmi
+  { "bmi_taken",      test_bmi_taken },
+  { "bmi_not_taken",  test_bmi_not_taken },
+
+  // bpl
+  { "bpl_taken",      test_bpl_taken },
+  { "bpl_not_taken",  test_bpl_not_taken },
+
+  // bvc
+  { "bvc_taken",      test_bvc_taken },
+  { "bvc_not_taken",  test_bvc_not_taken },
+
+  // bvs
+  { "bvs_taken",      test_bvs_taken },
+  { "bvs_not_taken",  test_bvs_not_taken },
 
   // cl_
   { "clc_imp", test_clc_imp },

@@ -53,6 +53,13 @@ enum OPCodes : opcode_t {
   OP_LDY_ABX = 0xBC, // ldy <addr>,X
 
   OP_BCC_REL = 0x90, // bcc #offset
+  OP_BCS_REL = 0xB0, // bcs #offset
+  OP_BEQ_REL = 0xF0, // beq #offset
+  OP_BNE_REL = 0xD0, // bne #offset
+  OP_BMI_REL = 0x30, // bmi #offset
+  OP_BPL_REL = 0x10, // bpl #offset
+  OP_BVC_REL = 0x50, // bvc #offset
+  OP_BVS_REL = 0x70, // bvs #offset
 
   OP_TAX_IMP = 0xAA, // tax
   OP_TAY_IMP = 0xBA, // tay
