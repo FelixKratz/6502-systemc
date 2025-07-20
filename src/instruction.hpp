@@ -27,6 +27,10 @@ enum OPCodes : opcode_t {
   OP_STX_ABS = 0x8E, // stx <addr>
   OP_STX_ZPY = 0x96, // stx $addr,Y
 
+  OP_STY_ZPG = 0x84, // sty $addr
+  OP_STY_ABS = 0x8C, // sty <addr>
+  OP_STY_ZPX = 0x94, // sty $addr,X
+
   OP_LDA_INX = 0xA1, // lda ($addr,X)
   OP_LDA_ZPG = 0xA5, // lda $addr
   OP_LDA_IMM = 0xA9, // lda #imm

@@ -277,6 +277,12 @@ class CPU : public sc_module {
         { OP_STX_ZPY, ZeroPageY },
       }
     },
+    { "sty", &CPU::sty, {
+        { OP_STY_ZPG, ZeroPage  },
+        { OP_STY_ABS, Absolute  },
+        { OP_STY_ZPX, ZeroPageX },
+      }
+    },
     { "lda", &CPU::lda, {
         { OP_LDA_IMM, Immediate },
         { OP_LDA_ZPG, ZeroPage  },

@@ -2,6 +2,7 @@
 #include "adc.hpp"
 #include "sta.hpp"
 #include "stx.hpp"
+#include "sty.hpp"
 #include "lda.hpp"
 #include "ldx.hpp"
 #include "ldy.hpp"
@@ -36,6 +37,10 @@ std::vector<TestCase> test_cases = {
   { "stx_abs", test_stx_abs },
   { "stx_zpy", test_stx_zpy },
 
+  // sty
+  { "sty_zpg", test_sty_zpg },
+  { "sty_abs", test_sty_abs },
+  { "sty_zpx", test_sty_zpx },
 
   // lda
   { "lda_abs", test_lda_abs },
