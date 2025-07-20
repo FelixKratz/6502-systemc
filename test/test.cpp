@@ -8,6 +8,7 @@
 #include "ldy.hpp"
 #include "jmp.hpp"
 #include "tax.hpp"
+#include "tay.hpp"
 #include "nop.hpp"
 #include "bcc.hpp"
 
@@ -97,6 +98,11 @@ std::vector<TestCase> test_cases = {
   { "tax_imp",      test_tax_imp },
   { "tax_zero",     test_tax_zero },
   { "tax_negative", test_tax_negative },
+
+  // tay
+  { "tay_imp",    test_tay_imp },
+  { "tay_zero",   test_tay_zero },
+  { "tay_negative", test_tay_negative },
 
   // bcc
   { "bcc_taken",      test_bcc_taken },

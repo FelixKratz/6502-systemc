@@ -36,6 +36,11 @@ struct StatusRegister {
     N = byte & FLAG_N;
   }
 
+  void set_carry(const uint16_t number) { C = number > 0xff; }
+  void set_zero(const mem_data_t number) { Z = number == 0; }
+  void set_negative(const mem_data_t number) { N = (number & 0x80) != 0; }
+  void set_overflow(const mem_data_t arg1, const mem_data_t arg2, const mem_data_t result) { V = (~(arg2 ^ arg1) & (arg2 ^ result) & 0x80) != 0; }
+
   bool operator==(const StatusRegister& other) const {
     return C == other.C && Z == other.Z && I == other.I && D == other.D
            && B == other.B && U == other.U && V == other.V && N == other.N;

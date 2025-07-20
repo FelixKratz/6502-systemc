@@ -55,6 +55,7 @@ enum OPCodes : opcode_t {
   OP_BCC_REL = 0x90, // bcc #offset
 
   OP_TAX_IMP = 0xAA, // tax
+  OP_TAY_IMP = 0xBA, // tay
 
   OP_NOP     = 0xEA, // nop
 };

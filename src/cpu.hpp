@@ -325,6 +325,10 @@ class CPU : public sc_module {
         { OP_TAX_IMP, Implied },
       }
     },
+    { "tay", &CPU::tay, {
+        { OP_TAY_IMP, Implied },
+      }
+    },
     { "bcc", &CPU::bcc, {
         { OP_BCC_REL, Relative },
       }
@@ -338,48 +342,49 @@ class CPU : public sc_module {
   void adc(const AddressingMode mode) {
     mem_data_t M = resolve_operand_data(mode);
     uint16_t sum = static_cast<uint16_t>(registers.A) + M + registers.P.C;
+    mem_data_t result = static_cast<mem_data_t>(sum);
 
     registers.P.C = sum > 0xff;
-    registers.P.Z = (sum & 0xff) == 0;
-    registers.P.N = (sum & 0x80) != 0;
-    registers.P.V = (~(registers.A ^ M) & (registers.A ^ static_cast<uint8_t>(sum)) & 0x80) != 0;
+    registers.P.set_zero(result);
+    registers.P.set_negative(result);
+    registers.P.set_overflow(M, registers.A, result);
 
-    registers.A = static_cast<mem_data_t>(sum);
+    registers.A = result;
   }
 
-  void st_(const AddressingMode mode, const mem_data_t data) {
+  void store(const AddressingMode mode, const mem_data_t data) {
     mem_addr_t destination = fetch_address(mode, false);
     write_to_memory(destination, data);
   }
 
   void sta(const AddressingMode mode) {
-    st_(mode, registers.A);
+    store(mode, registers.A);
   }
 
   void stx(const AddressingMode mode) {
-    st_(mode, registers.X);
+    store(mode, registers.X);
   }
 
   void sty(const AddressingMode mode) {
-    st_(mode, registers.Y);
+    store(mode, registers.Y);
   }
 
-  void ld_(const AddressingMode mode, mem_data_t& destination) {
+  void load(const AddressingMode mode, mem_data_t& destination) {
     destination = resolve_operand_data(mode);
-    registers.P.Z = destination == 0;
-    registers.P.N = (destination & 0x80) != 0;
+    registers.P.set_zero(destination);
+    registers.P.set_negative(destination);
   }
 
   void lda(const AddressingMode mode) {
-    ld_(mode, registers.A);
+    load(mode, registers.A);
   }
 
   void ldx(const AddressingMode mode) {
-    ld_(mode, registers.X);
+    load(mode, registers.X);
   }
 
   void ldy(const AddressingMode mode) {
-    ld_(mode, registers.Y);
+    load(mode, registers.Y);
   }
 
   void jmp(const AddressingMode mode) {
@@ -393,11 +398,19 @@ class CPU : public sc_module {
     halted = true;
   }
 
-  void tax(const AddressingMode mode) {
-    registers.X = registers.A;
+  void transfer(const mem_data_t from, mem_data_t& to) {
+    to = from;
     wait();
-    registers.P.Z = registers.A == 0;
-    registers.P.N = (registers.A & 0x80) != 0;
+    registers.P.set_zero(from);
+    registers.P.set_negative(from);
+  }
+
+  void tax(const AddressingMode mode) {
+    transfer(registers.A, registers.X);
+  }
+
+  void tay(const AddressingMode mode) {
+    transfer(registers.A, registers.Y);
   }
 
   void bcc(const AddressingMode mode) {
