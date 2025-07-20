@@ -64,6 +64,10 @@ enum OPCodes : opcode_t {
   OP_CLI_IMP = 0x58, // cli
   OP_CLV_IMP = 0xB8, // clv
 
+  OP_SEC_IMP = 0x38, // sec
+  OP_SED_IMP = 0xF8, // sed
+  OP_SEI_IMP = 0x78, // sei
+
   OP_NOP     = 0xEA, // nop
 };
 

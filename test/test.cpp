@@ -13,6 +13,7 @@
 #include "tya.hpp"
 #include "nop.hpp"
 #include "cl_.hpp"
+#include "se_.hpp"
 #include "bcc.hpp"
 
 std::vector<TestCase> test_cases = {
@@ -126,6 +127,11 @@ std::vector<TestCase> test_cases = {
   { "cld_imp", test_cld_imp },
   { "cli_imp", test_cli_imp },
   { "clv_imp", test_clv_imp },
+
+  // se_
+  { "sec_imp", test_sec_imp },
+  { "sed_imp", test_sed_imp },
+  { "sei_imp", test_sei_imp },
 
   // nop
   { "nop", test_nop },

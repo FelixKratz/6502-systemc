@@ -324,6 +324,9 @@ class CPU : public sc_module {
     { "clc", &CPU::clc, { { OP_CLC_IMP, Implied  }, } },
     { "cld", &CPU::cld, { { OP_CLD_IMP, Implied  }, } },
     { "cli", &CPU::cli, { { OP_CLI_IMP, Implied  }, } },
+    { "sec", &CPU::sec, { { OP_SEC_IMP, Implied  }, } },
+    { "sed", &CPU::sed, { { OP_SED_IMP, Implied  }, } },
+    { "sei", &CPU::sei, { { OP_SEI_IMP, Implied  }, } },
     { "clv", &CPU::clv, { { OP_CLV_IMP, Implied  }, } },
     { "bcc", &CPU::bcc, { { OP_BCC_REL, Relative }, } },
     { "nop", &CPU::nop, { { OP_NOP, Immediate    }, } },
@@ -440,6 +443,23 @@ class CPU : public sc_module {
 
   void clv(const AddressingMode _) {
     clear(registers.P.V);
+  }
+
+  void set(flag_t& flag) {
+    flag = 1;
+    wait();
+  }
+
+  void sec(const AddressingMode _) {
+    set(registers.P.C);
+  }
+
+  void sed(const AddressingMode _) {
+    set(registers.P.D);
+  }
+
+  void sei(const AddressingMode _) {
+    set(registers.P.I);
   }
 
   void nop(const AddressingMode _) {
