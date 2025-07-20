@@ -1,6 +1,7 @@
 #include <systemc>
 #include "adc.hpp"
 #include "sta.hpp"
+#include "stx.hpp"
 #include "lda.hpp"
 #include "ldx.hpp"
 #include "ldy.hpp"
@@ -29,6 +30,12 @@ std::vector<TestCase> test_cases = {
   { "sta_zpx_wraparound", test_sta_zpx_wraparound },
   { "sta_inx_wraparound", test_sta_inx_wraparound },
   { "sta_iny_page_cross", test_sta_iny_page_cross },
+
+  // stx
+  { "stx_zpg", test_stx_zpg },
+  { "stx_abs", test_stx_abs },
+  { "stx_zpy", test_stx_zpy },
+
 
   // lda
   { "lda_abs", test_lda_abs },

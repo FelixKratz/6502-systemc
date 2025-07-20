@@ -271,6 +271,12 @@ class CPU : public sc_module {
         { OP_STA_INY, IndirectY },
       }
     },
+    { "stx", &CPU::stx, {
+        { OP_STX_ZPG, ZeroPage  },
+        { OP_STX_ABS, Absolute  },
+        { OP_STX_ZPY, ZeroPageY },
+      }
+    },
     { "lda", &CPU::lda, {
         { OP_LDA_IMM, Immediate },
         { OP_LDA_ZPG, ZeroPage  },
@@ -335,9 +341,21 @@ class CPU : public sc_module {
     registers.A = static_cast<mem_data_t>(sum);
   }
 
-  void sta(const AddressingMode mode) {
+  void st_(const AddressingMode mode, const mem_data_t data) {
     mem_addr_t destination = fetch_address(mode, false);
-    write_to_memory(destination, registers.A);
+    write_to_memory(destination, data);
+  }
+
+  void sta(const AddressingMode mode) {
+    st_(mode, registers.A);
+  }
+
+  void stx(const AddressingMode mode) {
+    st_(mode, registers.X);
+  }
+
+  void sty(const AddressingMode mode) {
+    st_(mode, registers.Y);
   }
 
   void ld_(const AddressingMode mode, mem_data_t& destination) {
