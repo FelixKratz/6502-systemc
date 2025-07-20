@@ -9,7 +9,10 @@
 #include "jmp.hpp"
 #include "tax.hpp"
 #include "tay.hpp"
+#include "txa.hpp"
+#include "tya.hpp"
 #include "nop.hpp"
+#include "cl_.hpp"
 #include "bcc.hpp"
 
 std::vector<TestCase> test_cases = {
@@ -78,7 +81,6 @@ std::vector<TestCase> test_cases = {
   { "ldy_imm_zero_flag",    test_ldy_imm_zero_flag },
   { "ldy_abx_page_cross",   test_ldy_abx_page_cross },
 
-
   // adc
   { "adc_imm", test_adc_imm },
   { "adc_zpg", test_adc_zpg },
@@ -104,10 +106,26 @@ std::vector<TestCase> test_cases = {
   { "tay_zero",   test_tay_zero },
   { "tay_negative", test_tay_negative },
 
+  // txa
+  { "txa_imp",       test_txa_imp },
+  { "txa_zero",      test_txa_zero },
+  { "txa_negative",  test_txa_negative },
+
+  // tya
+  { "tya_imp",       test_tya_imp },
+  { "tya_zero",      test_tya_zero },
+  { "tya_negative",  test_tya_negative },
+
   // bcc
   { "bcc_taken",      test_bcc_taken },
   { "bcc_not_taken",  test_bcc_not_taken },
   { "bcc_page_cross", test_bcc_page_cross },
+
+  // cl_
+  { "clc_imp", test_clc_imp },
+  { "cld_imp", test_cld_imp },
+  { "cli_imp", test_cli_imp },
+  { "clv_imp", test_clv_imp },
 
   // nop
   { "nop", test_nop },

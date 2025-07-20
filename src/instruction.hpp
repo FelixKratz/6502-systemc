@@ -59,6 +59,11 @@ enum OPCodes : opcode_t {
   OP_TXA_IMP = 0x8A, // txa
   OP_TYA_IMP = 0x98, // tya
 
+  OP_CLC_IMP = 0x18, // clc
+  OP_CLD_IMP = 0xD8, // cld
+  OP_CLI_IMP = 0x58, // cli
+  OP_CLV_IMP = 0xB8, // clv
+
   OP_NOP     = 0xEA, // nop
 };
 

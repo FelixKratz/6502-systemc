@@ -11,21 +11,21 @@ constexpr uint8_t FLAG_V = 1 << 6;  // Overflow
 constexpr uint8_t FLAG_N = 1 << 7;  // Negative
 
 struct StatusRegister {
-  bool C = false;
-  bool Z = false;
-  bool I = false;
-  bool D = false;
-  bool B = false;
-  bool U = false;
-  bool V = false;
-  bool N = false;
+  flag_t C = false;
+  flag_t Z = false;
+  flag_t I = false;
+  flag_t D = false;
+  flag_t B = false;
+  flag_t U = false;
+  flag_t V = false;
+  flag_t N = false;
 
-  uint8_t to_byte() {
+  uint8_t to_byte() const {
     return (N*FLAG_N) | (V*FLAG_V) | (U*FLAG_U) | (B*FLAG_B)
            | (D*FLAG_D) | (I*FLAG_I) | (Z*FLAG_Z) | (C*FLAG_C);
   }
 
-  void from_byte(uint8_t byte) {
+  void from_byte(const uint8_t byte) {
     C = byte & FLAG_C;
     Z = byte & FLAG_Z;
     I = byte & FLAG_I;

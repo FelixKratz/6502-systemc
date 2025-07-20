@@ -252,10 +252,6 @@ class CPU : public sc_module {
 
   /* Implementation of the instruction set */
   const std::vector<const InstructionGroup> instruction_set = {
-    { "brk", &CPU::brk, {
-        { OP_BRK, Implied },
-      }
-    },
     { "jmp", &CPU::jmp, {
         { OP_JMP_ABS, Absolute },
         { OP_JMP_IND, Indirect },
@@ -321,22 +317,17 @@ class CPU : public sc_module {
         { OP_ADC_INY, IndirectY },
       }
     },
-    { "tax", &CPU::tax, {
-        { OP_TAX_IMP, Implied },
-      }
-    },
-    { "tay", &CPU::tay, {
-        { OP_TAY_IMP, Implied },
-      }
-    },
-    { "bcc", &CPU::bcc, {
-        { OP_BCC_REL, Relative },
-      }
-    },
-    { "nop", &CPU::nop, {
-        { OP_NOP, Immediate },
-      }
-    },
+    { "tax", &CPU::tax, { { OP_TAX_IMP, Implied  }, } },
+    { "tay", &CPU::tay, { { OP_TAY_IMP, Implied  }, } },
+    { "txa", &CPU::txa, { { OP_TXA_IMP, Implied  }, } },
+    { "tya", &CPU::tya, { { OP_TYA_IMP, Implied  }, } },
+    { "clc", &CPU::clc, { { OP_CLC_IMP, Implied  }, } },
+    { "cld", &CPU::cld, { { OP_CLD_IMP, Implied  }, } },
+    { "cli", &CPU::cli, { { OP_CLI_IMP, Implied  }, } },
+    { "clv", &CPU::clv, { { OP_CLV_IMP, Implied  }, } },
+    { "bcc", &CPU::bcc, { { OP_BCC_REL, Relative }, } },
+    { "nop", &CPU::nop, { { OP_NOP, Immediate    }, } },
+    { "brk", &CPU::brk, { { OP_BRK, Implied      }, } },
   };
 
   void adc(const AddressingMode mode) {
@@ -414,20 +405,41 @@ class CPU : public sc_module {
     registers.P.set_negative(from);
   }
 
-  void tax(const AddressingMode mode) {
+  void tax(const AddressingMode _) {
     transfer(registers.A, registers.X);
   }
 
-  void tay(const AddressingMode mode) {
+  void tay(const AddressingMode _) {
     transfer(registers.A, registers.Y);
   }
 
-  void txa(const AddressingMode mode) {
+  void txa(const AddressingMode _) {
     transfer(registers.X, registers.A);
   }
 
-  void tya(const AddressingMode mode) {
+  void tya(const AddressingMode _) {
     transfer(registers.Y, registers.A);
+  }
+
+  void clear(flag_t& flag) {
+    flag = 0;
+    wait();
+  }
+
+  void clc(const AddressingMode _) {
+    clear(registers.P.C);
+  }
+
+  void cld(const AddressingMode _) {
+    clear(registers.P.D);
+  }
+
+  void cli(const AddressingMode _) {
+    clear(registers.P.I);
+  }
+
+  void clv(const AddressingMode _) {
+    clear(registers.P.V);
   }
 
   void nop(const AddressingMode _) {
