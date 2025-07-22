@@ -3,7 +3,7 @@
 static bool test_nop(std::string name) {
   uint64_t cycles = 2;
 
-  mem_t start_memory = { OP_NOP };
+  mem_t start_memory = { OP_NOP_IMM };
   mem_t end_memory = start_memory;
 
   Registers start_registers = {};

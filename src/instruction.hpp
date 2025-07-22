@@ -1,7 +1,7 @@
 #include "types.hpp"
 
 enum OPCodes : opcode_t {
-  OP_BRK     = 0x00, // brk
+  OP_BRK_IMP = 0x00, // brk
 
   OP_JMP_ABS = 0x4C, // jmp <addr>
   OP_JMP_IND = 0x6C, // jmp (<addr>)
@@ -14,6 +14,15 @@ enum OPCodes : opcode_t {
   OP_ADC_ZPX = 0x75, // adc $addr,X
   OP_ADC_ABY = 0x79, // adc <addr>,Y
   OP_ADC_ABX = 0x7D, // adc <addr>,X
+
+  OP_AND_INX = 0x21, // and ($addr,X)
+  OP_AND_ZPG = 0x25, // and $addr
+  OP_AND_IMM = 0x29, // and #imm
+  OP_AND_ABS = 0x2D, // and <addr>
+  OP_AND_INY = 0x31, // and ($addr),Y
+  OP_AND_ZPX = 0x35, // and $addr,X
+  OP_AND_ABY = 0x39, // and <addr>,Y
+  OP_AND_ABX = 0x3D, // and <addr>,X
 
   OP_STA_INX = 0x81, // sta ($addr,X)
   OP_STA_ZPG = 0x85, // sta $addr
@@ -75,7 +84,7 @@ enum OPCodes : opcode_t {
   OP_SED_IMP = 0xF8, // sed
   OP_SEI_IMP = 0x78, // sei
 
-  OP_NOP     = 0xEA, // nop
+  OP_NOP_IMM = 0xEA, // nop
 };
 
 enum AddressingMode : mem_data_t {

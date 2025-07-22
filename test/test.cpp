@@ -22,6 +22,7 @@
 #include "bpl.hpp"
 #include "bvc.hpp"
 #include "bvs.hpp"
+#include "and.hpp"
 
 std::vector<TestCase> test_cases = {
   // jmp
@@ -103,6 +104,18 @@ std::vector<TestCase> test_cases = {
   { "adc_imm_page_cross", test_adc_abs_page_cross },
   { "adc_iny_page_cross", test_adc_iny_page_cross },
   { "adc_zpg_carry_out",  test_adc_zpg_carry_out },
+
+  // and
+  { "and_imm", test_and_imm },
+  { "and_imm_zero", test_and_imm_zero },
+  { "and_imm_negative", test_and_imm_negative },
+  { "and_zpg", test_and_zpg },
+  { "and_zpx", test_and_zpx },
+  { "and_abs", test_and_abs },
+  { "and_abx", test_and_abx },
+  { "and_aby", test_and_aby },
+  { "and_inx", test_and_inx },
+  { "and_iny", test_and_iny },
 
   // tax
   { "tax_imp",      test_tax_imp },
