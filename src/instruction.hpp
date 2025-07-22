@@ -24,6 +24,12 @@ enum OPCodes : opcode_t {
   OP_AND_ABY = 0x39, // and <addr>,Y
   OP_AND_ABX = 0x3D, // and <addr>,X
 
+  OP_ASL_ACC = 0x0A, // asl A
+  OP_ASL_ZPG = 0x06, // asl $addr
+  OP_ASL_ZPX = 0x16, // asl $addr,X
+  OP_ASL_ABS = 0x0E, // asl <addr>
+  OP_ASL_ABX = 0x1E, // asl <addr>,X
+
   OP_STA_INX = 0x81, // sta ($addr,X)
   OP_STA_ZPG = 0x85, // sta $addr
   OP_STA_ABS = 0x8D, // sta <addr>
@@ -88,6 +94,7 @@ enum OPCodes : opcode_t {
 };
 
 enum AddressingMode : mem_data_t {
+  Accumulator,
   Implied,
   Immediate,
   ZeroPage,
@@ -100,6 +107,12 @@ enum AddressingMode : mem_data_t {
   IndirectX,
   IndirectY,
   Relative
+};
+
+enum MemoryAccessType {
+  Read,
+  Write,
+  ReadModifyWrite
 };
 
 class CPU;

@@ -8,18 +8,11 @@ that reflects the original hardware.
 ## Features
 
 - Cycle-accurate execution
-- Single-cycle memory transactions
 - Modular opcode and addressing mode handling
 - Per-instruction cycle logging
-- Initial instruction support:
-  - `LDA` (immediate, zero page)
-  - `STA` (zero page)
-  - `JMP` (absolute)
-  - `NOP`
-  - `BRK`
 
 ## Next Steps
 
-- Extend the instruction set
-- Allow connection peripherals
+- Complete the instruction set
 - Run 6502 ROMS
+- Allow connecting peripherals

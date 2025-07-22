@@ -1,3 +1,4 @@
+#include <optional>
 #include <systemc.h>
 #include "registers.hpp"
 #include "instruction.hpp"
@@ -89,12 +90,13 @@ class CPUCore : public sc_module {
     return result;
   }
 
-  mem_addr_t bus_add_offset(const mem_addr_t base, const int16_t offset, const bool read_mode, const bool penalty_cycle) {
+  mem_addr_t bus_add_offset(const mem_addr_t base, const int16_t offset, const MemoryAccessType mat) {
     mem_addr_t result = base + offset;
 
-    // Page-cross cycle
-    if (read_mode && ((base & 0xff00) != (result & 0xff00))) wait();
-    if (penalty_cycle) wait();
+    bool page_cross = (base & 0xff00) != (result & 0xff00);
+    if (mat == Read && page_cross) wait(); // Page-cross cycle
+    if (mat == Write) wait(); // Hardware penalty cycle
+    if (mat == ReadModifyWrite) read_from_memory(result); // Dummy read
 
     return result;
   }
@@ -116,7 +118,7 @@ class CPUCore : public sc_module {
     return eaddr;
   }
 
-  mem_addr_t fetch_address(const AddressingMode mode, const bool read_mode) {
+  mem_addr_t fetch_address(const AddressingMode mode, const MemoryAccessType mat) {
     // All address manipulations use a bus cycle.
     mem_addr_t result;
     switch(mode) {
@@ -147,14 +149,14 @@ class CPUCore : public sc_module {
       case AddressingMode::AbsoluteX: {
         mem_addr_t base = fetch<mem_addr_t>();
         mem_addr_t offset = static_cast<mem_addr_t>(registers.X);
-        result = bus_add_offset(base, offset, read_mode, !read_mode);
+        result = bus_add_offset(base, offset, mat);
         break;
       }
 
       case AddressingMode::AbsoluteY: {
         mem_addr_t base = fetch<mem_addr_t>();
         mem_addr_t offset = static_cast<mem_addr_t>(registers.Y);
-        result = bus_add_offset(base, offset, read_mode, !read_mode);
+        result = bus_add_offset(base, offset, mat);
         break;
       }
 
@@ -176,13 +178,13 @@ class CPUCore : public sc_module {
         mem_addr_zp_t iaddr = fetch<mem_addr_zp_t>();
         mem_addr_t base = resolve_indirection(iaddr);
         mem_addr_t offset = registers.Y;
-        result = bus_add_offset(base, offset, read_mode, !read_mode);
+        result = bus_add_offset(base, offset, mat);
         break;
       }
 
       case AddressingMode::Relative: {
         int8_t offset = static_cast<int8_t>(fetch<mem_data_t>());
-        result = bus_add_offset(registers.pc, offset, true, true);
+        result = bus_add_offset(registers.pc, offset, mat);
         break;
       }
 
@@ -194,34 +196,49 @@ class CPUCore : public sc_module {
     return result;
   }
 
-  mem_data_t resolve_operand_data(const AddressingMode mode) {
+  struct operand_t {
+    mem_data_t data = 0;
+    std::function<void(mem_data_t)> write_back = nullptr;
+  };
+
+  operand_t resolve_operand(const AddressingMode mode, MemoryAccessType mat) {
+    // Protect against non-argument operands (IMP)
+    assert(mode != AddressingMode::Implied);
+
+    // Resolve non-memory operands (IMM,ACC)
     if (mode == AddressingMode::Immediate) {
       mem_data_t result = fetch<mem_data_t>();
       if (logging) std::cout << " #" << (int)result;
-      return result;
+      return { result };
+    } else if (mode == AddressingMode::Accumulator) {
+      mem_data_t result = registers.A;
+      if (logging) std::cout << " A=(" << (int)result << ")";
+      return { result, [&](mem_data_t value){registers.A = value;} };
     }
 
-    mem_addr_t address = fetch_address(mode, true);
+    // Resolve memory operands (ZPG,ZPX,ZPY,ABS,ABX,ABY,IND,INX,INY,REL)
+    mem_addr_t address = fetch_address(mode, mat);
     mem_data_t result = read_from_memory(address);
 
     if (logging) std::cout << " -> " << (int)result;
-    return result;
+    return { result, [=](mem_data_t value){write_to_memory(address, value);} };
   }
 
   void branch(const AddressingMode mode, const bool condition) {
     if (condition) {
-      mem_addr_t new_pc = fetch_address(mode, false);
+      mem_addr_t new_pc = fetch_address(mode, Read);
+      wait();
       registers.pc = new_pc;
     } else { fetch<mem_addr_zp_t>(); } // Fetch the offset byte anyways
   }
 
   void store(const AddressingMode mode, const mem_data_t data) {
-    mem_addr_t destination = fetch_address(mode, false);
+    mem_addr_t destination = fetch_address(mode, Write);
     write_to_memory(destination, data);
   }
 
   void load(const AddressingMode mode, mem_data_t& destination) {
-    destination = resolve_operand_data(mode);
+    destination = resolve_operand(mode, Read).data;
     registers.P.set_zero(destination);
     registers.P.set_negative(destination);
   }

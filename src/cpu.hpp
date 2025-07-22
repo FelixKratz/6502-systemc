@@ -4,7 +4,7 @@ class CPU : public CPUCore<CPU> {
   private:
   /* Implementation of the instruction set */
   void adc(const AddressingMode mode) {
-    mem_data_t M = resolve_operand_data(mode);
+    mem_data_t M = resolve_operand(mode, Read).data;
     uint16_t sum = static_cast<uint16_t>(registers.A) + M + registers.P.C;
     mem_data_t result = static_cast<mem_data_t>(sum);
 
@@ -16,8 +16,21 @@ class CPU : public CPUCore<CPU> {
     registers.A = result;
   }
 
+  void asl(const AddressingMode mode) {
+    operand_t operand = resolve_operand(mode, ReadModifyWrite);
+    mem_data_t M = operand.data;
+
+    registers.P.C = (M & 0x80) != 0;
+    M <<= 1;
+    wait();
+    registers.P.set_zero(M);
+    registers.P.set_negative(M);
+
+    operand.write_back(M);
+  }
+
   void and_instr(const AddressingMode mode) {
-    mem_data_t M = resolve_operand_data(mode);
+    mem_data_t M = resolve_operand(mode, Read).data;
     registers.A &= M;
 
     registers.P.set_zero(registers.A);
@@ -25,7 +38,7 @@ class CPU : public CPUCore<CPU> {
   }
 
   void jmp(const AddressingMode mode) {
-    registers.pc = fetch_address(mode, false);
+    registers.pc = fetch_address(mode, Read);
   }
 
   void brk(const AddressingMode mode) {
@@ -132,6 +145,14 @@ class CPU : public CPUCore<CPU> {
         { OP_ADC_ZPX, ZeroPageX },
         { OP_ADC_INX, IndirectX },
         { OP_ADC_INY, IndirectY },
+      }
+    },
+    { "asl", &CPU::asl, {
+        { OP_ASL_ACC, Accumulator },
+        { OP_ASL_ZPG, ZeroPage    },
+        { OP_ASL_ZPX, ZeroPageX   },
+        { OP_ASL_ABS, Absolute    },
+        { OP_ASL_ABX, AbsoluteX   },
       }
     },
     { "and", &CPU::and_instr, {

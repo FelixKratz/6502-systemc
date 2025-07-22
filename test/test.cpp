@@ -23,6 +23,7 @@
 #include "bvc.hpp"
 #include "bvs.hpp"
 #include "and.hpp"
+#include "asl.hpp"
 
 std::vector<TestCase> test_cases = {
   // jmp
@@ -116,6 +117,14 @@ std::vector<TestCase> test_cases = {
   { "and_aby", test_and_aby },
   { "and_inx", test_and_inx },
   { "and_iny", test_and_iny },
+
+  // asl
+  { "asl_acc", test_asl_acc },
+  { "asl_acc_carry", test_asl_acc_carry },
+  { "asl_zpg", test_asl_zpg },
+  { "asl_zpx", test_asl_zpx },
+  { "asl_abs", test_asl_abs },
+  { "asl_abx", test_asl_abx },
 
   // tax
   { "tax_imp",      test_tax_imp },
