@@ -16,7 +16,7 @@ class CPU : public CPUCore<CPU> {
   }
 
   void sbc(const AddressingMode mode) {
-    mem_data_t M = resolve_operand(mode, Read).data ^ 0xFF;
+    mem_data_t M = resolve_operand(mode, Read).data ^ 0xff;
     uint16_t sum = static_cast<uint16_t>(registers.A) + M + registers.P.C;
     mem_data_t result = static_cast<mem_data_t>(sum);
 
@@ -30,25 +30,53 @@ class CPU : public CPUCore<CPU> {
   void asl(const AddressingMode mode) {
     Operand operand = resolve_operand(mode, ReadModifyWrite);
     mem_data_t M = operand.data;
-
     registers.P.C = (M & 0x80) != 0;
-    M <<= 1;
-    wait();
-    registers.P.update_nz(M);
+    mem_data_t result = M << 1;
 
-    operand.write_back(M);
+    write_result(operand, result);
   }
 
   void lsr(const AddressingMode mode) {
     Operand operand = resolve_operand(mode, ReadModifyWrite);
     mem_data_t M = operand.data;
-
     registers.P.C = M & 0x01;
-    M >>= 1;
-    wait();
-    registers.P.update_nz(M);
+    mem_data_t result = M >> 1;
 
-    operand.write_back(M);
+    write_result(operand, result);
+  }
+
+  void rol(const AddressingMode mode) {
+    Operand operand = resolve_operand(mode, ReadModifyWrite);
+    mem_data_t M = operand.data;
+    flag_t old_carry = registers.P.C;
+    registers.P.C = (M & 0x80) != 0;
+    mem_data_t result = static_cast<mem_data_t>((M << 1) | old_carry);
+
+    write_result(operand, result);
+  }
+
+  void ror(const AddressingMode mode) {
+    Operand operand = resolve_operand(mode, ReadModifyWrite);
+    mem_data_t M = operand.data;
+    flag_t old_carry = registers.P.C;
+    registers.P.C = M & 0x01;
+    mem_data_t result = static_cast<mem_data_t>((M >> 1) | (0x80 * old_carry));
+
+    write_result(operand, result);
+  }
+
+  void inc(const AddressingMode mode) {
+    Operand operand = resolve_operand(mode, ReadModifyWrite);
+    mem_data_t result = operand.data + 1;
+
+    write_result(operand, result);
+  }
+
+  void dec(const AddressingMode mode) {
+    Operand operand = resolve_operand(mode, ReadModifyWrite);
+    mem_data_t result = operand.data - 1;
+
+    write_result(operand, result);
   }
 
   void and_instr(const AddressingMode mode) {
@@ -77,6 +105,10 @@ class CPU : public CPUCore<CPU> {
   void bmi(const AddressingMode mode) { branch(mode, registers.P.N); }
   void bvc(const AddressingMode mode) { branch(mode, !registers.P.V); }
   void bvs(const AddressingMode mode) { branch(mode, registers.P.V); }
+
+  void cmp(const AddressingMode mode) { compare(mode, registers.A); }
+  void cpx(const AddressingMode mode) { compare(mode, registers.X); }
+  void cpy(const AddressingMode mode) { compare(mode, registers.Y); }
 
   void sta(const AddressingMode mode) { store(mode, registers.A); }
   void stx(const AddressingMode mode) { store(mode, registers.X); }
@@ -195,6 +227,22 @@ class CPU : public CPUCore<CPU> {
         { OP_LSR_ABX, AbsoluteX   },
       }
     },
+    { "rol", &CPU::rol, {
+        { OP_ROL_ACC, Accumulator },
+        { OP_ROL_ZPG, ZeroPage    },
+        { OP_ROL_ZPX, ZeroPageX   },
+        { OP_ROL_ABS, Absolute    },
+        { OP_ROL_ABX, AbsoluteX   },
+      }
+    },
+    { "ror", &CPU::ror, {
+        { OP_ROR_ACC, Accumulator },
+        { OP_ROR_ZPG, ZeroPage    },
+        { OP_ROR_ZPX, ZeroPageX   },
+        { OP_ROR_ABS, Absolute    },
+        { OP_ROR_ABX, AbsoluteX   },
+      }
+    },
     { "and", &CPU::and_instr, {
         { OP_AND_IMM, Immediate },
         { OP_AND_ZPG, ZeroPage  },
@@ -204,6 +252,29 @@ class CPU : public CPUCore<CPU> {
         { OP_AND_ABY, AbsoluteY },
         { OP_AND_INX, IndirectX },
         { OP_AND_INY, IndirectY },
+      }
+    },
+    { "cmp", &CPU::cmp, {
+        { OP_CMP_IMM, Immediate },
+        { OP_CMP_ZPG, ZeroPage  },
+        { OP_CMP_ZPX, ZeroPageX },
+        { OP_CMP_ABS, Absolute  },
+        { OP_CMP_ABX, AbsoluteX },
+        { OP_CMP_ABY, AbsoluteY },
+        { OP_CMP_INX, IndirectX },
+        { OP_CMP_INY, IndirectY },
+      }
+    },
+    { "cpx", &CPU::cpx, {
+        { OP_CPX_IMM, Immediate },
+        { OP_CPX_ZPG, ZeroPage  },
+        { OP_CPX_ABS, Absolute  },
+      }
+    },
+    { "cpy", &CPU::cpy, {
+        { OP_CPY_IMM, Immediate },
+        { OP_CPY_ZPG, ZeroPage  },
+        { OP_CPY_ABS, Absolute  },
       }
     },
     { "tax", &CPU::tax, { { OP_TAX_IMP, Implied   }, } },

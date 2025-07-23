@@ -1,4 +1,3 @@
-
 #include "test.hpp"
 
 static bool test_sbc_imm(std::string name) {

@@ -45,6 +45,35 @@ enum OPCodes : opcode_t {
   OP_LSR_ABS = 0x4E, // lsr <addr>
   OP_LSR_ABX = 0x5E, // lsr <addr>,X
 
+  OP_ROL_ACC = 0x2A, // rol A
+  OP_ROL_ZPG = 0x26, // rol $addr
+  OP_ROL_ZPX = 0x36, // rol $addr,X
+  OP_ROL_ABS = 0x2E, // rol <addr>
+  OP_ROL_ABX = 0x3E, // rol <addr>,X
+
+  OP_ROR_ACC = 0x6A, // ror A
+  OP_ROR_ZPG = 0x66, // ror $addr
+  OP_ROR_ZPX = 0x76, // ror $addr,X
+  OP_ROR_ABS = 0x6E, // ror <addr>
+  OP_ROR_ABX = 0x7E, // ror <addr>,X
+
+  OP_CMP_IMM = 0xC9, // cmp #imm
+  OP_CMP_ZPG = 0xC5, // cmp $addr
+  OP_CMP_ZPX = 0xD5, // cmp $addr,X
+  OP_CMP_ABS = 0xCD, // cmp <addr>
+  OP_CMP_ABX = 0xDD, // cmp <addr>,X
+  OP_CMP_ABY = 0xD9, // cmp <addr>,Y
+  OP_CMP_INX = 0xC1, // cmp ($addr,X)
+  OP_CMP_INY = 0xD1, // cmp ($addr),Y
+
+  OP_CPX_IMM = 0xE0, // cpx #imm
+  OP_CPX_ZPG = 0xE4, // cpx $addr
+  OP_CPX_ABS = 0xEC, // cpx <addr>
+
+  OP_CPY_IMM = 0xC0, // cpy #imm
+  OP_CPY_ZPG = 0xC4, // cpy $addr
+  OP_CPY_ABS = 0xCC, // cpy <addr>
+
   OP_STA_INX = 0x81, // sta ($addr,X)
   OP_STA_ZPG = 0x85, // sta $addr
   OP_STA_ABS = 0x8D, // sta <addr>
@@ -132,6 +161,7 @@ enum MemoryAccessType {
 
 struct Operand {
   mem_data_t data;
+  AddressingMode mode;
   std::function<void(mem_data_t)> write_back;
 };
 

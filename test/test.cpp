@@ -25,7 +25,10 @@
 #include "and.hpp"
 #include "asl.hpp"
 #include "lsr.hpp"
+#include "rol.hpp"
+#include "ror.hpp"
 #include "sbc.hpp"
+#include "cmp.hpp"
 
 std::vector<TestCase> test_cases = {
   // jmp
@@ -117,18 +120,29 @@ std::vector<TestCase> test_cases = {
   { "sbc_inx", test_sbc_inx },
   { "sbc_iny", test_sbc_iny },
 
-  { "sbc_imm_borrow",     test_sbc_imm_borrow },
-  { "sbc_imm_no_borrow",  test_sbc_imm_no_borrow },
-  { "sbc_imm_zero",       test_sbc_imm_zero },
-  { "sbc_imm_negative",   test_sbc_imm_negative },
-  { "sbc_imm_overflow",   test_sbc_imm_overflow },
-  { "sbc_imm_page_cross", test_sbc_abs_page_cross },
-  { "sbc_iny_page_cross", test_sbc_iny_page_cross },
+  { "sbc_imm_borrow",       test_sbc_imm_borrow },
+  { "sbc_imm_no_borrow",    test_sbc_imm_no_borrow },
+  { "sbc_imm_zero",         test_sbc_imm_zero },
+  { "sbc_imm_negative",     test_sbc_imm_negative },
+  { "sbc_imm_overflow",     test_sbc_imm_overflow },
+  { "sbc_imm_page_cross",   test_sbc_abs_page_cross },
+  { "sbc_iny_page_cross",   test_sbc_iny_page_cross },
+
+  // cmp
+  { "cmp_imm", test_cmp_imm },
+  { "cmp_zpg", test_cmp_zpg },
+  { "cmp_abs", test_cmp_abs },
+  { "cmp_abx", test_cmp_abx },
+  { "cmp_zpx", test_cmp_zpx },
+  { "cmp_inx", test_cmp_inx },
+  { "cmp_iny", test_cmp_iny },
+
+  { "cmp_imm_less_than",    test_cmp_imm_less_than },
+  { "cmp_imm_equal",        test_cmp_imm_equal },
+  { "cmp_imm_greater_than", test_cmp_imm_greater_than },
 
   // and
   { "and_imm", test_and_imm },
-  { "and_imm_zero", test_and_imm_zero },
-  { "and_imm_negative", test_and_imm_negative },
   { "and_zpg", test_and_zpg },
   { "and_zpx", test_and_zpx },
   { "and_abs", test_and_abs },
@@ -137,13 +151,17 @@ std::vector<TestCase> test_cases = {
   { "and_inx", test_and_inx },
   { "and_iny", test_and_iny },
 
+  { "and_imm_zero", test_and_imm_zero },
+  { "and_imm_negative", test_and_imm_negative },
+
   // asl
   { "asl_acc", test_asl_acc },
-  { "asl_acc_carry", test_asl_acc_carry },
   { "asl_zpg", test_asl_zpg },
   { "asl_zpx", test_asl_zpx },
   { "asl_abs", test_asl_abs },
   { "asl_abx", test_asl_abx },
+
+  { "asl_acc_carry", test_asl_acc_carry },
 
   // lsr
   { "lsr_acc", test_lsr_acc },
@@ -153,6 +171,24 @@ std::vector<TestCase> test_cases = {
   { "lsr_abx", test_lsr_abx },
 
   { "lsr_acc_carry_zero", test_lsr_acc_carry_zero },
+
+  // rol
+  { "rol_acc", test_rol_acc },
+  { "rol_zpg", test_rol_zpg },
+  { "rol_zpx", test_rol_zpx },
+  { "rol_abs", test_rol_abs },
+  { "rol_abx", test_rol_abx },
+
+  { "rol_acc_carry_zero", test_rol_acc_carry_zero },
+
+  // ror
+  { "ror_acc", test_ror_acc },
+  { "ror_zpg", test_ror_zpg },
+  { "ror_zpx", test_ror_zpx },
+  { "ror_abs", test_ror_abs },
+  { "ror_abx", test_ror_abx },
+
+  { "ror_acc_carry_zero", test_ror_acc_carry_zero },
 
   // tax
   { "tax_imp",      test_tax_imp },

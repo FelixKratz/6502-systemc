@@ -203,11 +203,11 @@ class CPUCore : public sc_module {
     if (mode == AddressingMode::Immediate) {
       mem_data_t result = fetch<mem_data_t>();
       if (logging) std::cout << " #" << (int)result;
-      return { result };
+      return { result, mode };
     } else if (mode == AddressingMode::Accumulator) {
       mem_data_t result = registers.A;
       if (logging) std::cout << " A=(" << (int)result << ")";
-      return { result, [&](mem_data_t value){registers.A = value;} };
+      return { result, mode, [&](mem_data_t value){registers.A = value;} };
     }
 
     // Resolve memory operands (ZPG,ZPX,ZPY,ABS,ABX,ABY,IND,INX,INY,REL)
@@ -215,7 +215,7 @@ class CPUCore : public sc_module {
     mem_data_t result = read_from_memory(address);
 
     if (logging) std::cout << " -> " << (int)result;
-    return { result, [=](mem_data_t value){write_to_memory(address, value);} };
+    return { result, mode, [=](mem_data_t value){write_to_memory(address, value);} };
   }
 
   void branch(const AddressingMode mode, const bool condition) {
@@ -240,6 +240,23 @@ class CPUCore : public sc_module {
     to = from;
     wait();
     registers.P.update_nz(from);
+  }
+
+  void compare(const AddressingMode mode, mem_data_t a) {
+    mem_data_t M = resolve_operand(mode, Read).data;
+    mem_data_t result = a - M;
+
+    registers.P.update_nz(result);
+    registers.P.C = a >= M;
+  }
+
+  // Used for all RMW operations to write back the result
+  void write_result(Operand operand, mem_data_t result) {
+    if (operand.mode == Accumulator) wait(); // ALU cylce
+    else operand.write_back(operand.data); // Dummy write
+
+    registers.P.update_nz(result);
+    operand.write_back(result);
   }
 
   void clear_flag(flag_t& flag) {
