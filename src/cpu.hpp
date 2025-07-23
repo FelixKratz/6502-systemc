@@ -8,23 +8,45 @@ class CPU : public CPUCore<CPU> {
     uint16_t sum = static_cast<uint16_t>(registers.A) + M + registers.P.C;
     mem_data_t result = static_cast<mem_data_t>(sum);
 
-    registers.P.C = sum > 0xff;
-    registers.P.set_zero(result);
-    registers.P.set_negative(result);
-    registers.P.set_overflow(M, registers.A, result);
+    registers.P.update_nz(result);
+    registers.P.update_carry(sum);
+    registers.P.update_overflow(M, registers.A, result);
+
+    registers.A = result;
+  }
+
+  void sbc(const AddressingMode mode) {
+    mem_data_t M = resolve_operand(mode, Read).data ^ 0xFF;
+    uint16_t sum = static_cast<uint16_t>(registers.A) + M + registers.P.C;
+    mem_data_t result = static_cast<mem_data_t>(sum);
+
+    registers.P.update_nz(result);
+    registers.P.update_carry(sum);
+    registers.P.update_overflow(M, registers.A, result);
 
     registers.A = result;
   }
 
   void asl(const AddressingMode mode) {
-    operand_t operand = resolve_operand(mode, ReadModifyWrite);
+    Operand operand = resolve_operand(mode, ReadModifyWrite);
     mem_data_t M = operand.data;
 
     registers.P.C = (M & 0x80) != 0;
     M <<= 1;
     wait();
-    registers.P.set_zero(M);
-    registers.P.set_negative(M);
+    registers.P.update_nz(M);
+
+    operand.write_back(M);
+  }
+
+  void lsr(const AddressingMode mode) {
+    Operand operand = resolve_operand(mode, ReadModifyWrite);
+    mem_data_t M = operand.data;
+
+    registers.P.C = M & 0x01;
+    M >>= 1;
+    wait();
+    registers.P.update_nz(M);
 
     operand.write_back(M);
   }
@@ -33,8 +55,7 @@ class CPU : public CPUCore<CPU> {
     mem_data_t M = resolve_operand(mode, Read).data;
     registers.A &= M;
 
-    registers.P.set_zero(registers.A);
-    registers.P.set_negative(registers.A);
+    registers.P.update_nz(registers.A);
   }
 
   void jmp(const AddressingMode mode) {
@@ -147,12 +168,31 @@ class CPU : public CPUCore<CPU> {
         { OP_ADC_INY, IndirectY },
       }
     },
+    { "sbc", &CPU::sbc, {
+        { OP_SBC_IMM, Immediate },
+        { OP_SBC_ZPG, ZeroPage  },
+        { OP_SBC_ABS, Absolute  },
+        { OP_SBC_ABX, AbsoluteX },
+        { OP_SBC_ABY, AbsoluteY },
+        { OP_SBC_ZPX, ZeroPageX },
+        { OP_SBC_INX, IndirectX },
+        { OP_SBC_INY, IndirectY },
+      }
+    },
     { "asl", &CPU::asl, {
         { OP_ASL_ACC, Accumulator },
         { OP_ASL_ZPG, ZeroPage    },
         { OP_ASL_ZPX, ZeroPageX   },
         { OP_ASL_ABS, Absolute    },
         { OP_ASL_ABX, AbsoluteX   },
+      }
+    },
+    { "lsr", &CPU::lsr, {
+        { OP_LSR_ACC, Accumulator },
+        { OP_LSR_ZPG, ZeroPage    },
+        { OP_LSR_ZPX, ZeroPageX   },
+        { OP_LSR_ABS, Absolute    },
+        { OP_LSR_ABX, AbsoluteX   },
       }
     },
     { "and", &CPU::and_instr, {

@@ -1,4 +1,3 @@
-#include <optional>
 #include <systemc.h>
 #include "registers.hpp"
 #include "instruction.hpp"
@@ -196,12 +195,7 @@ class CPUCore : public sc_module {
     return result;
   }
 
-  struct operand_t {
-    mem_data_t data = 0;
-    std::function<void(mem_data_t)> write_back = nullptr;
-  };
-
-  operand_t resolve_operand(const AddressingMode mode, MemoryAccessType mat) {
+  Operand resolve_operand(const AddressingMode mode, MemoryAccessType mat) {
     // Protect against non-argument operands (IMP)
     assert(mode != AddressingMode::Implied);
 
@@ -239,15 +233,13 @@ class CPUCore : public sc_module {
 
   void load(const AddressingMode mode, mem_data_t& destination) {
     destination = resolve_operand(mode, Read).data;
-    registers.P.set_zero(destination);
-    registers.P.set_negative(destination);
+    registers.P.update_nz(destination);
   }
 
   void transfer(const mem_data_t from, mem_data_t& to) {
     to = from;
     wait();
-    registers.P.set_zero(from);
-    registers.P.set_negative(from);
+    registers.P.update_nz(from);
   }
 
   void clear_flag(flag_t& flag) {

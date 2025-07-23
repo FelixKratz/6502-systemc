@@ -15,6 +15,15 @@ enum OPCodes : opcode_t {
   OP_ADC_ABY = 0x79, // adc <addr>,Y
   OP_ADC_ABX = 0x7D, // adc <addr>,X
 
+  OP_SBC_INX = 0xE1, // sbc ($addr,X)
+  OP_SBC_ZPG = 0xE5, // sbc $addr
+  OP_SBC_IMM = 0xE9, // sbc #imm
+  OP_SBC_ABS = 0xED, // sbc <addr>
+  OP_SBC_INY = 0xF1, // sbc ($addr),Y
+  OP_SBC_ZPX = 0xF5, // sbc $addr,X
+  OP_SBC_ABY = 0xF9, // sbc <addr>,Y
+  OP_SBC_ABX = 0xFD, // sbc <addr>,X
+
   OP_AND_INX = 0x21, // and ($addr,X)
   OP_AND_ZPG = 0x25, // and $addr
   OP_AND_IMM = 0x29, // and #imm
@@ -29,6 +38,12 @@ enum OPCodes : opcode_t {
   OP_ASL_ZPX = 0x16, // asl $addr,X
   OP_ASL_ABS = 0x0E, // asl <addr>
   OP_ASL_ABX = 0x1E, // asl <addr>,X
+
+  OP_LSR_ACC = 0x4A, // lsr A
+  OP_LSR_ZPG = 0x46, // lsr $addr
+  OP_LSR_ZPX = 0x56, // lsr $addr,X
+  OP_LSR_ABS = 0x4E, // lsr <addr>
+  OP_LSR_ABX = 0x5E, // lsr <addr>,X
 
   OP_STA_INX = 0x81, // sta ($addr,X)
   OP_STA_ZPG = 0x85, // sta $addr
@@ -113,6 +128,11 @@ enum MemoryAccessType {
   Read,
   Write,
   ReadModifyWrite
+};
+
+struct Operand {
+  mem_data_t data;
+  std::function<void(mem_data_t)> write_back;
 };
 
 class CPU;

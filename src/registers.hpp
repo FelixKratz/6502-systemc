@@ -36,10 +36,15 @@ struct StatusRegister {
     N = byte & FLAG_N;
   }
 
-  void set_carry(const uint16_t number) { C = number > 0xff; }
-  void set_zero(const mem_data_t number) { Z = number == 0; }
-  void set_negative(const mem_data_t number) { N = (number & 0x80) != 0; }
-  void set_overflow(const mem_data_t arg1, const mem_data_t arg2, const mem_data_t result) { V = (~(arg2 ^ arg1) & (arg2 ^ result) & 0x80) != 0; }
+  void update_nz(const mem_data_t number) {
+    update_zero(number);
+    update_negative(number);
+  }
+
+  void update_carry(const uint16_t number) { C = number > 0xff; }
+  void update_zero(const mem_data_t number) { Z = number == 0; }
+  void update_negative(const mem_data_t number) { N = (number & 0x80) != 0; }
+  void update_overflow(const mem_data_t arg1, const mem_data_t arg2, const mem_data_t result) { V = (~(arg2 ^ arg1) & (arg2 ^ result) & 0x80) != 0; }
 
   bool operator==(const StatusRegister& other) const {
     return C == other.C && Z == other.Z && I == other.I && D == other.D
@@ -58,11 +63,12 @@ struct Registers {
   mem_data_t A = 0;
   mem_data_t X = 0;
   mem_data_t Y = 0;
+  mem_data_t S = 0;
   StatusRegister P;
 
   bool operator==(const Registers& other) const {
   return pc == other.pc && A == other.A && X == other.X && Y == other.Y
-         && P == other.P;
+         && P == other.P && S == other.S;
   }
 
   bool operator!=(const Registers& other) const {
@@ -75,6 +81,7 @@ struct Registers {
       << ", A=" << (int)reg.A
       << ", X=" << (int)reg.X
       << ", Y=" << (int)reg.Y
+      << ", S=" << (int)reg.S
       << ", P=" << reg.P;
     return o;
   }

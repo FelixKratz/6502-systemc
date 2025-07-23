@@ -24,6 +24,8 @@
 #include "bvs.hpp"
 #include "and.hpp"
 #include "asl.hpp"
+#include "lsr.hpp"
+#include "sbc.hpp"
 
 std::vector<TestCase> test_cases = {
   // jmp
@@ -106,6 +108,23 @@ std::vector<TestCase> test_cases = {
   { "adc_iny_page_cross", test_adc_iny_page_cross },
   { "adc_zpg_carry_out",  test_adc_zpg_carry_out },
 
+  // sbc
+  { "sbc_imm", test_sbc_imm },
+  { "sbc_zpg", test_sbc_zpg },
+  { "sbc_abs", test_sbc_abs },
+  { "sbc_abx", test_sbc_abx },
+  { "sbc_zpx", test_sbc_zpx },
+  { "sbc_inx", test_sbc_inx },
+  { "sbc_iny", test_sbc_iny },
+
+  { "sbc_imm_borrow",     test_sbc_imm_borrow },
+  { "sbc_imm_no_borrow",  test_sbc_imm_no_borrow },
+  { "sbc_imm_zero",       test_sbc_imm_zero },
+  { "sbc_imm_negative",   test_sbc_imm_negative },
+  { "sbc_imm_overflow",   test_sbc_imm_overflow },
+  { "sbc_imm_page_cross", test_sbc_abs_page_cross },
+  { "sbc_iny_page_cross", test_sbc_iny_page_cross },
+
   // and
   { "and_imm", test_and_imm },
   { "and_imm_zero", test_and_imm_zero },
@@ -125,6 +144,15 @@ std::vector<TestCase> test_cases = {
   { "asl_zpx", test_asl_zpx },
   { "asl_abs", test_asl_abs },
   { "asl_abx", test_asl_abx },
+
+  // lsr
+  { "lsr_acc", test_lsr_acc },
+  { "lsr_zpg", test_lsr_zpg },
+  { "lsr_zpx", test_lsr_zpx },
+  { "lsr_abs", test_lsr_abs },
+  { "lsr_abx", test_lsr_abx },
+
+  { "lsr_acc_carry_zero", test_lsr_acc_carry_zero },
 
   // tax
   { "tax_imp",      test_tax_imp },
@@ -218,8 +246,8 @@ int sc_main(int argc, char* argv[]) {
     }
   }
 
-  std::cout << "Usage: <bin> --count | test_case=<integer> " << std::endl;
-  std::cout << "Available Test Cases:" << std::endl;
+  std::cout << "Usage: <bin> --count | test_case=<index|name> " << std::endl;
+  std::cout << "Available Test Cases: " << "(format: [<index>] <name>)" << std::endl;
   for (size_t i = 0; i < test_cases.size(); ++i) {
     std::cout << "  [" << i << "] " << test_cases[i].name << "\n";
   }
