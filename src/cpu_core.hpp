@@ -218,6 +218,18 @@ class CPUCore : public sc_module {
     return { result, mode, [=](mem_data_t value){write_to_memory(address, value);} };
   }
 
+  void push_stack(mem_data_t data) {
+    write_to_memory(0x0100 + registers.S, data);
+    wait();
+  }
+
+  mem_data_t pull_stack() {
+    read_from_memory(0x0100 + registers.S); // Dummy read
+    ++registers.S;
+    wait();
+    return read_from_memory(0x0100 + registers.S);
+  }
+
   void branch(const AddressingMode mode, const bool condition) {
     if (condition) {
       mem_addr_t new_pc = fetch_address(mode, Read);
@@ -267,6 +279,12 @@ class CPUCore : public sc_module {
   void set_flag(flag_t& flag) {
     flag = 1;
     wait();
+  }
+
+  void offset_register(mem_data_t& reg, int8_t offset) {
+    reg += offset;
+    wait();
+    registers.P.update_nz(reg);
   }
 
   // Core loop of the CPU

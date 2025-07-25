@@ -82,10 +82,42 @@ class CPU : public CPUCore<CPU> {
   void and_instr(const AddressingMode mode) {
     mem_data_t M = resolve_operand(mode, Read).data;
     registers.A &= M;
-
     registers.P.update_nz(registers.A);
   }
 
+  void eor(const AddressingMode mode) {
+    mem_data_t M = resolve_operand(mode, Read).data;
+    registers.A ^= M;
+    registers.P.update_nz(registers.A);
+  }
+
+  void ora(const AddressingMode mode) {
+    mem_data_t M = resolve_operand(mode, Read).data;
+    registers.A |= M;
+    registers.P.update_nz(registers.A);
+  }
+
+  void bit(const AddressingMode mode) {
+    mem_data_t M = resolve_operand(mode, Read).data;
+    mem_data_t result = registers.A & M;
+    registers.P.update_zero(result);
+    registers.P.update_negative(M);
+    registers.P.V = (M & 0x40) != 0;
+  }
+
+  void pha(const AddressingMode _) { push_stack(registers.A); }
+  void php(const AddressingMode _) { push_stack(registers.P.to_byte()); }
+
+  void pla(const AddressingMode _) {
+    registers.A = pull_stack();
+    registers.P.update_nz(registers.A);
+  }
+
+  void plp(const AddressingMode _) {
+    mem_data_t stack_P = pull_stack();
+    registers.P.from_byte(stack_P);
+  }
+  
   void jmp(const AddressingMode mode) {
     registers.pc = fetch_address(mode, Read);
   }
@@ -122,6 +154,8 @@ class CPU : public CPUCore<CPU> {
   void tay(const AddressingMode _) { transfer(registers.A, registers.Y); }
   void txa(const AddressingMode _) { transfer(registers.X, registers.A); }
   void tya(const AddressingMode _) { transfer(registers.Y, registers.A); }
+  void tsx(const AddressingMode _) { transfer(registers.S, registers.X); }
+  void txs(const AddressingMode _) { registers.S = registers.X; wait(); }
 
   void clc(const AddressingMode _) { clear_flag(registers.P.C); }
   void cld(const AddressingMode _) { clear_flag(registers.P.D); }
@@ -131,6 +165,11 @@ class CPU : public CPUCore<CPU> {
   void sec(const AddressingMode _) { set_flag(registers.P.C); }
   void sed(const AddressingMode _) { set_flag(registers.P.D); }
   void sei(const AddressingMode _) { set_flag(registers.P.I); }
+
+  void inx(const AddressingMode mode) { offset_register(registers.X, 1); }
+  void iny(const AddressingMode mode) { offset_register(registers.Y, 1); }
+  void dex(const AddressingMode mode) { offset_register(registers.X, -1); }
+  void dey(const AddressingMode mode) { offset_register(registers.Y, -1); }
 
   void nop(const AddressingMode _) { wait(); }
 
@@ -254,6 +293,33 @@ class CPU : public CPUCore<CPU> {
         { OP_AND_INY, IndirectY },
       }
     },
+    { "eor", &CPU::eor, {
+        { OP_EOR_IMM, Immediate },
+        { OP_EOR_ZPG, ZeroPage  },
+        { OP_EOR_ZPX, ZeroPageX },
+        { OP_EOR_ABS, Absolute  },
+        { OP_EOR_ABX, AbsoluteX },
+        { OP_EOR_ABY, AbsoluteY },
+        { OP_EOR_INX, IndirectX },
+        { OP_EOR_INY, IndirectY },
+      }
+    },
+    { "ora", &CPU::ora, {
+        { OP_ORA_IMM, Immediate },
+        { OP_ORA_ZPG, ZeroPage  },
+        { OP_ORA_ZPX, ZeroPageX },
+        { OP_ORA_ABS, Absolute  },
+        { OP_ORA_ABX, AbsoluteX },
+        { OP_ORA_ABY, AbsoluteY },
+        { OP_ORA_INX, IndirectX },
+        { OP_ORA_INY, IndirectY },
+      }
+    },
+    { "bit", &CPU::bit, {
+        { OP_BIT_ZPG, ZeroPage },
+        { OP_BIT_ABS, Absolute },
+      }
+    },
     { "cmp", &CPU::cmp, {
         { OP_CMP_IMM, Immediate },
         { OP_CMP_ZPG, ZeroPage  },
@@ -277,10 +343,30 @@ class CPU : public CPUCore<CPU> {
         { OP_CPY_ABS, Absolute  },
       }
     },
+    { "inc", &CPU::inc, {
+        { OP_INC_ZPG, ZeroPage  },
+        { OP_INC_ZPX, ZeroPageX },
+        { OP_INC_ABS, Absolute  },
+        { OP_INC_ABX, AbsoluteX },
+      }
+    },
+    { "dec", &CPU::dec, {
+        { OP_DEC_ZPG, ZeroPage  },
+        { OP_DEC_ZPX, ZeroPageX },
+        { OP_DEC_ABS, Absolute  },
+        { OP_DEC_ABX, AbsoluteX },
+      }
+    },
+    { "inx", &CPU::inx, { { OP_INX_IMP, Implied   }, } },
+    { "iny", &CPU::iny, { { OP_INY_IMP, Implied   }, } },
+    { "dex", &CPU::dex, { { OP_DEX_IMP, Implied   }, } },
+    { "dey", &CPU::dey, { { OP_DEY_IMP, Implied   }, } },
     { "tax", &CPU::tax, { { OP_TAX_IMP, Implied   }, } },
     { "tay", &CPU::tay, { { OP_TAY_IMP, Implied   }, } },
     { "txa", &CPU::txa, { { OP_TXA_IMP, Implied   }, } },
     { "tya", &CPU::tya, { { OP_TYA_IMP, Implied   }, } },
+    { "tsx", &CPU::tsx, { { OP_TSX_IMP, Implied   }, } },
+    { "txs", &CPU::txs, { { OP_TXS_IMP, Implied   }, } },
     { "clc", &CPU::clc, { { OP_CLC_IMP, Implied   }, } },
     { "cld", &CPU::cld, { { OP_CLD_IMP, Implied   }, } },
     { "cli", &CPU::cli, { { OP_CLI_IMP, Implied   }, } },

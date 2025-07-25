@@ -29,6 +29,13 @@
 #include "ror.hpp"
 #include "sbc.hpp"
 #include "cmp.hpp"
+#include "eor.hpp"
+#include "ora.hpp"
+#include "bit.hpp"
+#include "inc.hpp"
+#include "dec.hpp"
+#include "txs.hpp"
+#include "tsx.hpp"
 
 std::vector<TestCase> test_cases = {
   // jmp
@@ -154,6 +161,57 @@ std::vector<TestCase> test_cases = {
   { "and_imm_zero", test_and_imm_zero },
   { "and_imm_negative", test_and_imm_negative },
 
+  // eor
+  { "eor_imm", test_eor_imm },
+  { "eor_zpg", test_eor_zpg },
+  { "eor_zpx", test_eor_zpx },
+  { "eor_abs", test_eor_abs },
+  { "eor_abx", test_eor_abx },
+  { "eor_aby", test_eor_aby },
+  { "eor_inx", test_eor_inx },
+  { "eor_iny", test_eor_iny },
+
+  { "eor_imm_zero", test_eor_imm_zero },
+  { "eor_imm_negative", test_eor_imm_negative },
+
+  // ora
+  { "ora_imm", test_ora_imm },
+  { "ora_zpg", test_ora_zpg },
+  { "ora_zpx", test_ora_zpx },
+  { "ora_abs", test_ora_abs },
+  { "ora_abx", test_ora_abx },
+  { "ora_aby", test_ora_aby },
+  { "ora_inx", test_ora_inx },
+  { "ora_iny", test_ora_iny },
+
+  { "ora_imm_zero", test_ora_imm_zero },
+  { "ora_imm_negative", test_ora_imm_negative },
+
+  // bit
+  { "bit_zpg_zero",              test_bit_zpg_zero },
+  { "bit_zpg_negative",          test_bit_zpg_negative },
+  { "bit_zpg_overflow",          test_bit_zpg_overflow },
+  { "bit_abs_zero",              test_bit_abs_zero },
+  { "bit_abs_negative_overflow", test_bit_abs_negative_overflow },
+
+  // inc/dec
+  { "inc_zpg", test_inc_zpg },
+  { "inc_zpg_zero", test_inc_zpg_zero },
+  { "dec_zpg", test_dec_zpg },
+  { "dec_zpg_negative", test_dec_zpg_negative },
+
+  // inx/iny
+  { "inx", test_inx },
+  { "inx_zero", test_inx_zero },
+  { "iny", test_iny },
+  { "iny_zero", test_iny_zero },
+
+  // dex/dey
+  { "dex", test_dex },
+  { "dex_negative", test_dex_negative },
+  { "dey", test_dey },
+  { "dey_negative", test_dey_negative },
+
   // asl
   { "asl_acc", test_asl_acc },
   { "asl_zpg", test_asl_zpg },
@@ -196,8 +254,8 @@ std::vector<TestCase> test_cases = {
   { "tax_negative", test_tax_negative },
 
   // tay
-  { "tay_imp",    test_tay_imp },
-  { "tay_zero",   test_tay_zero },
+  { "tay_imp",      test_tay_imp },
+  { "tay_zero",     test_tay_zero },
   { "tay_negative", test_tay_negative },
 
   // txa
@@ -206,9 +264,17 @@ std::vector<TestCase> test_cases = {
   { "txa_negative",  test_txa_negative },
 
   // tya
-  { "tya_imp",       test_tya_imp },
-  { "tya_zero",      test_tya_zero },
-  { "tya_negative",  test_tya_negative },
+  { "tya_imp",      test_tya_imp },
+  { "tya_zero",     test_tya_zero },
+  { "tya_negative", test_tya_negative },
+
+  // tsx
+  { "tsx_imp",      test_tsx_imp },
+  { "tsx_zero",     test_tsx_zero },
+  { "tsx_negative", test_tsx_negative },
+
+  // txs
+  { "txs_imp", test_txs_imp },
 
   // bcc
   { "bcc_taken",      test_bcc_taken },

@@ -33,6 +33,27 @@ enum OPCodes : opcode_t {
   OP_AND_ABY = 0x39, // and <addr>,Y
   OP_AND_ABX = 0x3D, // and <addr>,X
 
+  OP_EOR_IMM = 0x49, // eor #imm
+  OP_EOR_ZPG = 0x45, // eor $addr
+  OP_EOR_ZPX = 0x55, // eor $addr,X
+  OP_EOR_ABS = 0x4D, // eor <addr>
+  OP_EOR_ABX = 0x5D, // eor <addr>,X
+  OP_EOR_ABY = 0x59, // eor <addr>,Y
+  OP_EOR_INX = 0x41, // eor ($addr,X)
+  OP_EOR_INY = 0x51, // eor ($addr),Y
+
+  OP_ORA_IMM = 0x09, // ora #imm
+  OP_ORA_ZPG = 0x05, // ora $addr
+  OP_ORA_ZPX = 0x15, // ora $addr,X
+  OP_ORA_ABS = 0x0D, // ora <addr>
+  OP_ORA_ABX = 0x1D, // ora <addr>,X
+  OP_ORA_ABY = 0x19, // ora <addr>,Y
+  OP_ORA_INX = 0x01, // ora ($addr,X)
+  OP_ORA_INY = 0x11, // ora ($addr),Y
+
+  OP_BIT_ZPG = 0x24, // bit $addr
+  OP_BIT_ABS = 0x2C, // bit <addr>
+
   OP_ASL_ACC = 0x0A, // asl A
   OP_ASL_ZPG = 0x06, // asl $addr
   OP_ASL_ZPX = 0x16, // asl $addr,X
@@ -121,9 +142,11 @@ enum OPCodes : opcode_t {
   OP_BVS_REL = 0x70, // bvs #offset
 
   OP_TAX_IMP = 0xAA, // tax
-  OP_TAY_IMP = 0xBA, // tay
+  OP_TAY_IMP = 0xA8, // tay
   OP_TXA_IMP = 0x8A, // txa
   OP_TYA_IMP = 0x98, // tya
+  OP_TSX_IMP = 0xBA, // tsx
+  OP_TXS_IMP = 0x9A, // txs
 
   OP_CLC_IMP = 0x18, // clc
   OP_CLD_IMP = 0xD8, // cld
@@ -133,6 +156,24 @@ enum OPCodes : opcode_t {
   OP_SEC_IMP = 0x38, // sec
   OP_SED_IMP = 0xF8, // sed
   OP_SEI_IMP = 0x78, // sei
+
+  OP_INC_ZPG = 0xE6, // inc $addr
+  OP_INC_ZPX = 0xF6, // inc $addr,X
+  OP_INC_ABS = 0xEE, // inc <addr>
+  OP_INC_ABX = 0xFE, // inc <addr>,X
+
+  OP_INX_IMP = 0xE8, // inx
+
+  OP_INY_IMP = 0xC8, // iny
+
+  OP_DEC_ZPG = 0xC6, // dec $addr
+  OP_DEC_ZPX = 0xD6, // dec $addr,X
+  OP_DEC_ABS = 0xCE, // dec <addr>
+  OP_DEC_ABX = 0xDE, // dec <addr>,X
+
+  OP_DEX_IMP = 0xCA, // dex
+
+  OP_DEY_IMP = 0x88, // dey
 
   OP_NOP_IMM = 0xEA, // nop
 };
