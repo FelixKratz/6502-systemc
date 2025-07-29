@@ -25,8 +25,7 @@ static bool run_test(std::string&& name,
   simulation.step(1);
   uint64_t start_cycles = simulation.cpu.get_cycle_count();
 
-  while (simulation.cpu.get_cycle_count() < start_cycles + expected_cycles
-         && !simulation.cpu.is_halted()) {
+  while (simulation.cpu.get_cycle_count() < start_cycles + expected_cycles) {
     simulation.step(1);
   }
   uint64_t end_cycles = simulation.cpu.get_cycle_count();

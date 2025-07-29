@@ -29,6 +29,8 @@
 #include "ror.hpp"
 #include "sbc.hpp"
 #include "cmp.hpp"
+#include "cpx.hpp"
+#include "cpy.hpp"
 #include "eor.hpp"
 #include "ora.hpp"
 #include "bit.hpp"
@@ -149,6 +151,15 @@ std::vector<TestCase> test_cases = {
   { "cmp_imm_less_than",    test_cmp_imm_less_than },
   { "cmp_imm_equal",        test_cmp_imm_equal },
   { "cmp_imm_greater_than", test_cmp_imm_greater_than },
+
+  // cpx
+  { "cpx_imm_equal",        test_cpx_imm_equal },
+  { "cpx_imm_less_than",    test_cpx_imm_less_than },
+  { "cpx_imm_greater_than", test_cpx_imm_greater_than },
+
+  // cpy
+  { "cpy_abs_zero",     test_cpy_abs_zero },
+  { "cpy_zpg_negative", test_cpy_zpg_negative },
 
   // and
   { "and_imm", test_and_imm },
@@ -291,6 +302,8 @@ std::vector<TestCase> test_cases = {
   { "beq_taken",      test_beq_taken },
   { "beq_not_taken",  test_beq_not_taken },
 
+  { "beq_page_cross_taken", test_beq_page_cross_taken },
+
   // bne
   { "bne_taken",      test_bne_taken },
   { "bne_not_taken",  test_bne_not_taken },
@@ -329,9 +342,14 @@ std::vector<TestCase> test_cases = {
   { "pha", test_pha },
   { "pla", test_pla },
 
+  { "pla_sets_zero",     test_pla_sets_zero },
+  { "pla_sets_negative", test_pla_sets_negative },
+
   // php / plp
   { "php", test_php },
   { "plp", test_plp },
+
+  { "plp_restores_interrupt_flag", test_plp_restores_interrupt_flag },
 
   // jsr / rts
   { "jsr", test_jsr },
@@ -340,6 +358,7 @@ std::vector<TestCase> test_cases = {
 
   // brk
   { "brk", test_brk },
+  { "brk_rti_round_trip", test_brk_rti_round_trip },
 };
 
 int sc_main(int argc, char* argv[]) {

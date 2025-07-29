@@ -27,6 +27,24 @@ static bool test_pla(std::string name) {
   return run_test(std::move(name), cycles, memory, expected, start, end);
 }
 
+static bool test_pla_sets_zero(std::string name) {
+  uint64_t cycles = 4;
+  mem_t memory = { OP_PLA_IMP };
+  memory[0x01FF] = 0x00;
+  Registers start = { .S = 0xFE };
+  Registers end = { .A = 0x00, .S = 0xFF, .P.Z = 1, .pc = 0x1 };
+  return run_test(std::move(name), cycles, memory, memory, start, end);
+}
+
+static bool test_pla_sets_negative(std::string name) {
+  uint64_t cycles = 4;
+  mem_t memory = { OP_PLA_IMP };
+  memory[0x01FF] = 0x80;
+  Registers start = { .S = 0xFE };
+  Registers end = { .A = 0x80, .S = 0xFF, .P.N = 1, .pc = 0x1 };
+  return run_test(std::move(name), cycles, memory, memory, start, end);
+}
+
 static bool test_php(std::string name) {
   uint64_t cycles = 3;
 
@@ -55,6 +73,15 @@ static bool test_plp(std::string name) {
   mem_t expected = memory;
 
   return run_test(std::move(name), cycles, memory, expected, start, end);
+}
+
+static bool test_plp_restores_interrupt_flag(std::string name) {
+  uint64_t cycles = 4;
+  mem_t memory = { OP_PLP_IMP };
+  memory[0x01FF] = 0b00000100; // only I flag set
+  Registers start = { .S = 0xFE };
+  Registers end = { .P = { .I = 1 }, .S = 0xFF, .pc = 0x1 };
+  return run_test(std::move(name), cycles, memory, memory, start, end);
 }
 
 static bool test_jsr(std::string name) {
@@ -96,7 +123,7 @@ static bool test_rti(std::string name) {
 
   Registers start = { .S = 0xFC };
   Registers end = { .pc = 0x3456, .S = 0xFF };
-  end.P.from_byte(0b10100101);
+  end.P.from_byte(0b10000101);
 
   return run_test(std::move(name), cycles, memory, memory, start, end);
 }
