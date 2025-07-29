@@ -26,11 +26,11 @@ static bool test_beq_not_taken(std::string name) {
 
 static bool test_beq_page_cross_taken(std::string name) {
   uint64_t cycles = 4;
-  mem_t memory = { };
-  memory[0x10FE] = OP_BEQ_REL;
-  memory[0x10FF] = 0x1;
+  mem_t memory = { 0 };
+  memory[0x01FD] = OP_BEQ_REL;
+  memory[0x01FE] = 0x1;
 
-  Registers start = { .pc = 0x10FF, .P.Z = 1 };
-  Registers end   = { .pc = 0x1101, .P.Z = 1 };
+  Registers start = { .pc = 0x01FD, .P.Z = 1 };
+  Registers end   = { .pc = 0x0200, .P.Z = 1 };
   return run_test(std::move(name), cycles, memory, memory, start, end);
 }
