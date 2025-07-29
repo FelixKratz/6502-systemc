@@ -148,19 +148,17 @@ class CPU : public CPUCore<CPU> {
     #pragma pack(pop)
 
     rti_data_t result = pull_stack<rti_data_t>();
-    registers.P.from_byte(result.p);
+    registers.P.from_byte(result.p & 0b11001111);
     registers.pc = result.pc;
   }
 
   void brk(const AddressingMode mode) {
     #pragma pack(push, 1)
-    struct brk_data_t { mem_data_t p; mem_data_t pch; mem_data_t pcl; } data;
+    struct brk_data_t { mem_data_t p; mem_addr_t pc; } data;
     #pragma pack(pop)
-    data.p = registers.P.to_byte() | 0x30;
 
-    mem_addr_t pc = registers.pc + 1;
-    data.pch = static_cast<mem_data_t>(pc >> 8); // High byte first
-    data.pcl = static_cast<mem_data_t>(pc & 0xff); // Low byte second
+    data.pc = registers.pc + 1;
+    data.p = registers.P.to_byte() | 0x30;
 
     push_stack(data);
 
