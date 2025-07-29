@@ -82,7 +82,8 @@ class CPUCore : public sc_module {
     // Little-endian byte loading
     mem_data_t buffer[sizeof(T)];
     for (size_t i = 0; i < sizeof(T); i++) {
-      buffer[i] = read_from_memory(registers.pc++);
+      buffer[i] = read_from_memory(registers.pc);
+      registers.pc++;
     }
     T result;
     std::memcpy(&result, buffer, sizeof(T));
@@ -309,8 +310,8 @@ class CPUCore : public sc_module {
 
   // Core loop of the CPU
   void execute() {
+    wait();
     while (!halted) {
-      wait();
       uint64_t cycles_start = cycle_count;
 
       opcode_t opcode = fetch<opcode_t>();
