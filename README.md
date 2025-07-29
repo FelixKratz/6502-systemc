@@ -7,12 +7,13 @@ that reflects the original hardware.
 
 ## Features
 
+- Complete official instruction set
 - Cycle-accurate execution
 - Modular opcode and addressing mode handling
 - Per-instruction cycle logging
+- Complete test suite
+- Passes Klaus Dormanns 6502 test suite
 
 ## Next Steps
 
-- Complete the instruction set
-- Run 6502 ROMS
 - Allow connecting peripherals
