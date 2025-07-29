@@ -27,6 +27,7 @@ class CPUCore : public sc_module {
   void set_logging(bool log) { logging = log; };
   void set_registers(Registers& reg) { registers = reg; };
 
+  bool is_booted() const { return booted; }
   bool is_halted() const { return halted; };
   Registers copy_registers() const { return registers; };
   uint64_t get_cycle_count() const { return cycle_count; };
@@ -35,6 +36,7 @@ class CPUCore : public sc_module {
   Registers registers;
   bool halted = false;
   bool logging = false;
+  bool booted = false;
   uint64_t cycle_count = 0;
 
   std::unordered_map<opcode_t, const InstructionGroup*> opcode_map;
@@ -184,7 +186,7 @@ class CPUCore : public sc_module {
 
       case AddressingMode::Relative: {
         int8_t offset = static_cast<int8_t>(fetch<mem_data_t>());
-        result = bus_add_offset(registers.pc, offset, mat);
+        result = bus_add_offset(registers.pc, static_cast<int16_t>(offset), mat);
         break;
       }
 
@@ -308,9 +310,21 @@ class CPUCore : public sc_module {
     registers.P.update_nz(reg);
   }
 
+  void boot() {
+    wait();
+    if (registers.pc == 0) {
+      mem_data_t pcl = read_from_memory(0xFFFC);
+      mem_data_t pch = read_from_memory(0xFFFD);
+      mem_addr_t pc = pcl | (static_cast<mem_addr_t>(pch) >> 8);
+      registers.pc = pc;
+    }
+    booted = true;
+  }
+
   // Core loop of the CPU
   void execute() {
-    wait();
+    boot();
+
     while (!halted) {
       uint64_t cycles_start = cycle_count;
 
