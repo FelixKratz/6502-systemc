@@ -5,25 +5,65 @@ class CPU : public CPUCore<CPU> {
   /* Implementation of the instruction set */
   void adc(const AddressingMode mode) {
     mem_data_t M = resolve_operand(mode, Read).data;
-    uint16_t sum = static_cast<uint16_t>(registers.A) + M + registers.P.C;
-    mem_data_t result = static_cast<mem_data_t>(sum);
+    mem_data_t A = registers.A;
+    mem_data_t C = registers.P.C;
+    mem_data_t result;
+
+    if (registers.P.D) {
+      uint8_t al = (A & 0x0F) + (M & 0x0F) + C;
+      uint8_t ah = (A >> 4) + (M >> 4);
+
+      if (al > 9) al += 6;
+      ah += (al > 0x0F) ? 1 : 0;
+      if (ah > 9) ah += 6;
+
+      result = (ah << 4) | (al & 0x0F);
+      registers.P.C = (ah > 15) ? 1 : 0;
+    } else {
+      uint16_t sum = static_cast<uint16_t>(A) + M + C;
+      result = static_cast<mem_data_t>(sum);
+
+      registers.P.update_carry(sum);
+      registers.P.update_overflow(M, A, result);
+    }
 
     registers.P.update_nz(result);
-    registers.P.update_carry(sum);
-    registers.P.update_overflow(M, registers.A, result);
-
     registers.A = result;
   }
 
   void sbc(const AddressingMode mode) {
-    mem_data_t M = resolve_operand(mode, Read).data ^ 0xff;
-    uint16_t sum = static_cast<uint16_t>(registers.A) + M + registers.P.C;
-    mem_data_t result = static_cast<mem_data_t>(sum);
+    mem_data_t M = resolve_operand(mode, Read).data;
+    mem_data_t A = registers.A;
+    mem_data_t C = registers.P.C;
+    mem_data_t result;
+
+    if (registers.P.D) {
+      uint8_t al = (A & 0x0F) - (M & 0x0F) - (1 - C);
+      uint8_t borrow = 0;
+
+      if (al > 0x0F) {
+        al = ((al - 6) & 0x0F);
+        borrow = 1;
+      }
+
+      uint8_t ah = (A >> 4) - (M >> 4) - borrow;
+
+      if (ah > 0x0F) {
+        ah = ((ah - 6) & 0x0F);
+        registers.P.C = 0;
+      } else { registers.P.C = 1; }
+
+      result = (ah << 4) | al;
+    }
+    else {
+      uint16_t sum = static_cast<uint16_t>(registers.A) + (M ^ 0xff) + registers.P.C;
+      result = static_cast<mem_data_t>(sum);
+
+      registers.P.update_carry(sum);
+      registers.P.update_overflow(M ^ 0xff, registers.A, result);
+    }
 
     registers.P.update_nz(result);
-    registers.P.update_carry(sum);
-    registers.P.update_overflow(M, registers.A, result);
-
     registers.A = result;
   }
 
