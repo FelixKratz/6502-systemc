@@ -218,16 +218,36 @@ class CPUCore : public sc_module {
     return { result, mode, [=](mem_data_t value){write_to_memory(address, value);} };
   }
 
-  void push_stack(mem_data_t data) {
-    write_to_memory(0x0100 + registers.S, data);
+  template <typename T>
+  void push_stack(T data) {
+    static_assert(std::is_trivially_copyable_v<T>,
+                  "Template type passed to push_stack must be trivially copyable.");
+
+    mem_data_t buffer[sizeof(T)];
+    std::memcpy(buffer, &data, sizeof(T));
+    for (int i = sizeof(T) - 1; i >= 0; i--) {
+      write_to_memory(0x0100 + registers.S, buffer[i]);
+      registers.S--;
+    }
     wait();
   }
 
-  mem_data_t pull_stack() {
-    read_from_memory(0x0100 + registers.S); // Dummy read
-    ++registers.S;
+  template <typename T>
+  T pull_stack() {
+    static_assert(std::is_trivially_copyable_v<T>,
+                  "Template type passed to pull_stack must be trivially copyable.");
+
+    read_from_memory(0x0100 + registers.S + 1); // Dummy read
+
+    // Little-endian byte loading
+    mem_data_t buffer[sizeof(T)];
+    for (size_t i = 0; i < sizeof(T); i++) {
+      buffer[i] = read_from_memory(0x0100 + ++registers.S);
+    }
     wait();
-    return read_from_memory(0x0100 + registers.S);
+    T result;
+    std::memcpy(&result, buffer, sizeof(T));
+    return result;
   }
 
   void branch(const AddressingMode mode, const bool condition) {

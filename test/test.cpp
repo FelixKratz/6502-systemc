@@ -36,6 +36,8 @@
 #include "dec.hpp"
 #include "txs.hpp"
 #include "tsx.hpp"
+#include "brk.hpp"
+#include "stack_operations.hpp"
 
 std::vector<TestCase> test_cases = {
   // jmp
@@ -322,6 +324,22 @@ std::vector<TestCase> test_cases = {
 
   // nop
   { "nop", test_nop },
+
+  // pha / pla
+  { "pha", test_pha },
+  { "pla", test_pla },
+
+  // php / plp
+  { "php", test_php },
+  { "plp", test_plp },
+
+  // jsr / rts
+  { "jsr", test_jsr },
+  { "rts", test_rts },
+  { "rti", test_rti },
+
+  // brk
+  { "brk", test_brk },
 };
 
 int sc_main(int argc, char* argv[]) {

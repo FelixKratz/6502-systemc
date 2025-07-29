@@ -175,7 +175,16 @@ enum OPCodes : opcode_t {
 
   OP_DEY_IMP = 0x88, // dey
 
-  OP_NOP_IMM = 0xEA, // nop
+  OP_NOP_IMP = 0xEA, // nop
+
+  OP_PHA_IMP = 0x48, // pha
+  OP_PLA_IMP = 0x68, // pla
+  OP_PHP_IMP = 0x08, // php
+  OP_PLP_IMP = 0x28, // plp
+
+  OP_JSR_ABS = 0x20, // jsr <addr>
+  OP_RTS_IMP = 0x60, // rts
+  OP_RTI_IMP = 0x40, // rti
 };
 
 enum AddressingMode : mem_data_t {

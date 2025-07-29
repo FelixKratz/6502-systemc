@@ -106,15 +106,21 @@ class CPU : public CPUCore<CPU> {
   }
 
   void pha(const AddressingMode _) { push_stack(registers.A); }
-  void php(const AddressingMode _) { push_stack(registers.P.to_byte()); }
+
+  void php(const AddressingMode _) {
+    StatusRegister p = registers.P;
+    p.B = 1; // Break flag always set on php
+    p.U = 1; // Unused flag always set on php
+    push_stack(p.to_byte());
+  }
 
   void pla(const AddressingMode _) {
-    registers.A = pull_stack();
+    registers.A = pull_stack<mem_data_t>();
     registers.P.update_nz(registers.A);
   }
 
   void plp(const AddressingMode _) {
-    mem_data_t stack_P = pull_stack();
+    mem_data_t stack_P = pull_stack<mem_data_t>();
     registers.P.from_byte(stack_P);
   }
   
@@ -122,11 +128,47 @@ class CPU : public CPUCore<CPU> {
     registers.pc = fetch_address(mode, Read);
   }
 
+  void jsr(const AddressingMode mode) {
+    mem_addr_t sr_pc = fetch_address(mode, Read);
+    mem_addr_t return_address = registers.pc - 1;
+
+    push_stack(return_address);
+    registers.pc = sr_pc;
+  }
+
+  void rts(const AddressingMode _) {
+    mem_addr_t return_address = pull_stack<mem_addr_t>();
+    wait();
+    registers.pc = return_address + 1;
+  }
+
+  void rti(const AddressingMode _) {
+    #pragma pack(push, 1)
+    struct rti_data_t { mem_data_t p; mem_addr_t pc; };
+    #pragma pack(pop)
+
+    rti_data_t result = pull_stack<rti_data_t>();
+    registers.P.from_byte(result.p);
+    registers.pc = result.pc;
+  }
+
   void brk(const AddressingMode mode) {
-    // brk actually takes 7 instructions, which we model later
-    for (int i = 0; i < 6; i++) wait();
-    registers.P.B = true;
-    halted = true;
+    #pragma pack(push, 1)
+    struct brk_data_t { mem_data_t p; mem_data_t pch; mem_data_t pcl; } data;
+    #pragma pack(pop)
+    data.p = registers.P.to_byte() | 0x30;
+
+    mem_addr_t pc = registers.pc + 1;
+    data.pch = static_cast<mem_data_t>(pc >> 8); // High byte first
+    data.pcl = static_cast<mem_data_t>(pc & 0xff); // Low byte second
+
+    push_stack(data);
+
+    registers.P.I = 1;
+
+    mem_data_t pcl = read_from_memory(0xFFFE);
+    mem_data_t pch = read_from_memory(0xFFFF);
+    registers.pc = (pch << 8) | pcl;
   }
 
   void bcc(const AddressingMode mode) { branch(mode, !registers.P.C); }
@@ -374,6 +416,14 @@ class CPU : public CPUCore<CPU> {
     { "sed", &CPU::sed, { { OP_SED_IMP, Implied   }, } },
     { "sei", &CPU::sei, { { OP_SEI_IMP, Implied   }, } },
     { "clv", &CPU::clv, { { OP_CLV_IMP, Implied   }, } },
+    { "brk", &CPU::brk, { { OP_BRK_IMP, Implied   }, } },
+    { "pha", &CPU::pha, { { OP_PHA_IMP, Implied   }, } },
+    { "pla", &CPU::pla, { { OP_PLA_IMP, Implied   }, } },
+    { "php", &CPU::php, { { OP_PHP_IMP, Implied   }, } },
+    { "plp", &CPU::plp, { { OP_PLP_IMP, Implied   }, } },
+    { "rts", &CPU::rts, { { OP_RTS_IMP, Implied   }, } },
+    { "nop", &CPU::nop, { { OP_NOP_IMP, Implied   }, } },
+    { "rti", &CPU::rti, { { OP_RTI_IMP, Implied   }, } },
     { "bcc", &CPU::bcc, { { OP_BCC_REL, Relative  }, } },
     { "bcs", &CPU::bcs, { { OP_BCS_REL, Relative  }, } },
     { "beq", &CPU::beq, { { OP_BEQ_REL, Relative  }, } },
@@ -382,8 +432,7 @@ class CPU : public CPUCore<CPU> {
     { "bpl", &CPU::bpl, { { OP_BPL_REL, Relative  }, } },
     { "bvc", &CPU::bvc, { { OP_BVC_REL, Relative  }, } },
     { "bvs", &CPU::bvs, { { OP_BVS_REL, Relative  }, } },
-    { "nop", &CPU::nop, { { OP_NOP_IMM, Immediate }, } },
-    { "brk", &CPU::brk, { { OP_BRK_IMP, Implied   }, } },
+    { "jsr", &CPU::jsr, { { OP_JSR_ABS, Absolute  }, } },
   };
 
   public:

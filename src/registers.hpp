@@ -63,7 +63,7 @@ struct Registers {
   mem_data_t A = 0;
   mem_data_t X = 0;
   mem_data_t Y = 0;
-  mem_data_t S = 0;
+  mem_data_t S = 0xff;
   StatusRegister P;
 
   bool operator==(const Registers& other) const {
