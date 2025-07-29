@@ -315,8 +315,12 @@ class CPUCore : public sc_module {
     if (registers.pc == 0) {
       mem_data_t pcl = read_from_memory(0xFFFC);
       mem_data_t pch = read_from_memory(0xFFFD);
-      mem_addr_t pc = pcl | (static_cast<mem_addr_t>(pch) >> 8);
+      mem_addr_t pc = pcl | (static_cast<mem_addr_t>(pch) << 8);
       registers.pc = pc;
+      if (logging) {
+        std::cout << "PC: "
+                  << std::hex << std::showbase << (int)pc << std::endl;
+      }
     }
     booted = true;
   }
