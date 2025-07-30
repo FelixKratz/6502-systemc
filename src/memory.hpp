@@ -29,7 +29,7 @@ class Memory : public sc_module {
   void operate() {
     if (in.req) {
       if (in.write_flag) memory[in.address] = in.write_data;
-      out.read_data = memory[in.address];
+      else out.read_data = memory[in.address];
     }
   }
 };

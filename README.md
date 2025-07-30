@@ -9,6 +9,7 @@ that reflects the original hardware.
 
 - Complete official instruction set
 - Cycle-accurate execution
+- 4x faster than real-time (on an M1 Pro Chip)
 - Modular opcode and addressing mode handling
 - Per-instruction cycle logging
 - Complete test suite: execute with `make test`
