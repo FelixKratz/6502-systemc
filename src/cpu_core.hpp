@@ -39,7 +39,7 @@ class CPUCore : public sc_module {
   bool booted = false;
   uint64_t cycle_count = 0;
 
-  std::unordered_map<opcode_t, const InstructionGroup*> opcode_map;
+  std::array<Instruction, 0xff> opcode_map = {};
 
   // Just a wrapper around wait to count cpu cycles
   void wait() {
@@ -326,27 +326,26 @@ class CPUCore : public sc_module {
     boot();
 
     while (!halted) {
-      uint64_t cycles_start = cycle_count;
+      const uint64_t cycles_start = cycle_count;
 
-      opcode_t opcode = fetch<opcode_t>();
-      auto function_map_it = opcode_map.find(opcode);
+      const opcode_t opcode = fetch<opcode_t>();
+      const Instruction instruction = opcode_map[opcode];
 
-      if (function_map_it != opcode_map.end()) {
+      if (instruction.handler != nullptr) {
         if (logging) {
           std::cout << std::endl << std::setw(8) << sc_time_stamp() << ": "
                     << std::showbase << std::hex
-                    << function_map_it->second->name;
+                    << instruction.name;
         }
 
-        const InstructionGroup* group = function_map_it->second;
-        AddressingMode mode = group->get_mode(opcode);
-        InstructionHandler handler = function_map_it->second->handler;
+        AddressingMode mode = instruction.mode;
+        InstructionHandler handler = instruction.handler;
 
         // Call the OPCode handler function
         (reinterpret_cast<Derived*>(this)->*handler)(mode);
 
         if (logging) {
-          uint64_t cycles_end = cycle_count;
+          const uint64_t cycles_end = cycle_count;
           std::cout << std::noshowbase << std::dec
                     << " (" << cycles_end - cycles_start << " cycles)"
                     << std::endl;

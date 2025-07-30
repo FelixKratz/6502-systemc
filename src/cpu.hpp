@@ -253,6 +253,14 @@ class CPU : public CPUCore<CPU> {
 
   void nop(const AddressingMode _) { wait(); }
 
+  // Definition of the instruction set with conversion to a flat array
+  // at startup for performance reasons
+  struct InstructionGroup {
+    const std::string name;
+    const InstructionHandler handler;
+    const std::unordered_map<opcode_t, const AddressingMode> instructions;
+  };
+
   static const inline std::vector<const InstructionGroup> instruction_set = {
     { "jmp", &CPU::jmp, {
         { OP_JMP_ABS, Absolute },
@@ -476,8 +484,10 @@ class CPU : public CPUCore<CPU> {
   public:
   CPU(sc_module_name name) : CPUCore(name) {
     for (const auto& instruction_group : instruction_set) {
-      for (const auto& [opcode, _] : instruction_group.instructions) {
-        opcode_map[opcode] = &instruction_group;
+      for (const auto& [opcode, mode] : instruction_group.instructions) {
+        opcode_map[opcode].name = instruction_group.name;
+        opcode_map[opcode].mode = mode;
+        opcode_map[opcode].handler = instruction_group.handler;
       }
     }
   }

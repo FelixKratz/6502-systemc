@@ -188,6 +188,7 @@ enum OPCodes : opcode_t {
 };
 
 enum AddressingMode : mem_data_t {
+  Illegal,
   Accumulator,
   Implied,
   Immediate,
@@ -218,12 +219,8 @@ struct Operand {
 class CPU;
 using InstructionHandler = void(CPU::*)(const AddressingMode);
 
-struct InstructionGroup {
-  const std::string name;
-  const InstructionHandler handler;
-  const std::unordered_map<opcode_t, const AddressingMode> instructions;
-
-  AddressingMode get_mode(opcode_t opcode) const {
-    return instructions.at(opcode);
-  }
+struct Instruction {
+  std::string name = std::string("unknown");
+  AddressingMode mode = Illegal;
+  InstructionHandler handler = nullptr;
 };
