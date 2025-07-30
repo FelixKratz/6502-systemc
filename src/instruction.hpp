@@ -220,7 +220,6 @@ class CPU;
 using InstructionHandler = void(CPU::*)(const AddressingMode);
 
 struct Instruction {
-  std::string name = std::string("unknown");
   AddressingMode mode = Illegal;
   InstructionHandler handler = nullptr;
 };

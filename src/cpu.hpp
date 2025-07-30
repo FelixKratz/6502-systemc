@@ -485,7 +485,7 @@ class CPU : public CPUCore<CPU> {
   CPU(sc_module_name name) : CPUCore(name) {
     for (const auto& instruction_group : instruction_set) {
       for (const auto& [opcode, mode] : instruction_group.instructions) {
-        opcode_map[opcode].name = instruction_group.name;
+        opcode_names[opcode] = instruction_group.name;
         opcode_map[opcode].mode = mode;
         opcode_map[opcode].handler = instruction_group.handler;
       }

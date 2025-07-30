@@ -40,6 +40,7 @@ class CPUCore : public sc_module {
   uint64_t cycle_count = 0;
 
   std::array<Instruction, 0xff> opcode_map = {};
+  std::array<std::string, 0xff> opcode_names = {};
 
   // Just a wrapper around wait to count cpu cycles
   void wait() {
@@ -335,7 +336,7 @@ class CPUCore : public sc_module {
         if (logging) {
           std::cout << std::endl << std::setw(8) << sc_time_stamp() << ": "
                     << std::showbase << std::hex
-                    << instruction.name;
+                    << opcode_names[opcode];
         }
 
         AddressingMode mode = instruction.mode;
