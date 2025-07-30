@@ -203,23 +203,33 @@ class CPUCore : public sc_module {
     // Protect against non-argument operands (IMP)
     assert(mode != AddressingMode::Implied);
 
+    mem_data_t result;
+    std::function<void(mem_data_t)> write_back = nullptr;
+
     // Resolve non-memory operands (IMM,ACC)
     if (mode == AddressingMode::Immediate) {
-      mem_data_t result = fetch<mem_data_t>();
+      result = fetch<mem_data_t>();
       if (logging) std::cout << " #" << (int)result;
-      return { result, mode };
-    } else if (mode == AddressingMode::Accumulator) {
-      mem_data_t result = registers.A;
+    }
+    else if (mode == AddressingMode::Accumulator) {
+      result = registers.A;
       if (logging) std::cout << " A=(" << (int)result << ")";
-      return { result, mode, [&](mem_data_t value){registers.A = value;} };
+      if (mat == ReadModifyWrite) {
+        write_back = [&](mem_data_t value){registers.A = value;};
+      }
+    }
+    // Resolve memory operands (ZPG,ZPX,ZPY,ABS,ABX,ABY,IND,INX,INY,REL)
+    else {
+      mem_addr_t address = fetch_address(mode, mat);
+      result = read_from_memory(address);
+
+      if (mat == ReadModifyWrite) {
+        write_back = [=](mem_data_t value){write_to_memory(address, value);};
+      }
+      if (logging) std::cout << " -> " << (int)result;
     }
 
-    // Resolve memory operands (ZPG,ZPX,ZPY,ABS,ABX,ABY,IND,INX,INY,REL)
-    mem_addr_t address = fetch_address(mode, mat);
-    mem_data_t result = read_from_memory(address);
-
-    if (logging) std::cout << " -> " << (int)result;
-    return { result, mode, [=](mem_data_t value){write_to_memory(address, value);} };
+    return { result, mode, write_back };
   }
 
   template <typename T>
