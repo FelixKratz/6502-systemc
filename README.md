@@ -11,9 +11,10 @@ that reflects the original hardware.
 - Cycle-accurate execution
 - Modular opcode and addressing mode handling
 - Per-instruction cycle logging
-- Complete test suite
-- Passes Klaus Dormanns 6502 test suite
+- Complete test suite: execute with `make test`
+- Passes Klaus Dormanns 6502 test suite: execute with `make kd_test`
 
 ## Next Steps
 
 - Allow connecting peripherals
+- Improve documentation
