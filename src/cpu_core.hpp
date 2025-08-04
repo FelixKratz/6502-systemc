@@ -1,43 +1,41 @@
 #include <systemc.h>
 #include "registers.hpp"
 #include "instruction.hpp"
+#include "bus.hpp"
+
+enum AccuracyMode {
+  TimingAccurate, // All absolute cycle timings are correct
+  LogicAccurate,  // Only the cycle couting is correct, not the cycle timing
+};
 
 template <class Derived>
 class CPUCore : public sc_module {
   friend Derived;
 
   public:
-  struct {
-    sc_core::sc_in<bool> clock;
-    sc_core::sc_in<mem_data_t> read_data;
-  } in;
-
-  struct {
-    sc_core::sc_out<bool> req;
-    sc_core::sc_out<bool> write_flag;
-    sc_core::sc_out<mem_addr_t> address;
-    sc_core::sc_out<mem_data_t> write_data;
-  } out;
-
-  CPUCore(sc_module_name name) : sc_module(name) {
+  CPUCore(sc_module_name name, const sc_event& trigger, Bus* bus) : sc_module(name), bus(bus) {
     SC_THREAD(execute);
-    sensitive << in.clock.pos();
+    sensitive << trigger;
   }
 
   void set_logging(bool log) { logging = log; };
   void set_registers(Registers& reg) { registers = reg; };
+  void set_mode(AccuracyMode cpu_mode) { accuracy = cpu_mode; }
+  void set_max_cycles(uint64_t cycles) { max_cycles = cycles; }
 
   bool is_booted() const { return booted; }
   bool is_halted() const { return halted; };
   Registers copy_registers() const { return registers; };
   uint64_t get_cycle_count() const { return cycle_count; };
+  bool get_accuracy() { return accuracy; }
 
   private:
+  Bus* bus;
   Registers registers;
-  bool halted = false;
-  bool logging = false;
-  bool booted = false;
+  AccuracyMode accuracy = TimingAccurate;
+  bool halted = false, logging = false, booted = false;
   uint64_t cycle_count = 0;
+  uint64_t max_cycles = 0;
 
   std::array<Instruction, 0xff> opcode_map = {};
   std::array<std::string, 0xff> opcode_names = {};
@@ -45,35 +43,22 @@ class CPUCore : public sc_module {
   // Just a wrapper around wait to count cpu cycles
   void wait() {
     ++cycle_count;
-    ::wait();
-  }
-
-  // A full handshake transaction with the memory
-  mem_data_t memory_transaction() {
-    out.req = true;
-
-    // Wait for memory to handle the request.
-    // On the 6502 this is guaranteed to happen in 1 cycle.
-    wait();
-    mem_data_t data = in.read_data;
-    out.req = false;
-    return data;
+    if (accuracy == TimingAccurate) sc_core::wait();
   }
 
   // Read one byte of memory and dont progress the pc
   mem_data_t read_from_memory(const mem_addr_t source_address) {
-    out.address = source_address;
-    out.write_flag = false;
-    return memory_transaction();
+    // Reading from the bus takes one cycle
+    wait();
+    return bus->read(source_address);
   }
 
   // Write one byte of memory
-  mem_data_t write_to_memory(const mem_addr_t address, const mem_data_t data) {
-    out.address = address;
-    out.write_data = data;
-    out.write_flag = true;
+  void write_to_memory(const mem_addr_t address, const mem_data_t data) {
+    // Writing to the bus takes one cycle
+    wait();
     if (logging) std::cout << " -> [" << (int)address << "] = " << (int)data;
-    return memory_transaction();
+    bus->write(address, data);
   }
 
   // Fetch a byte segment from memory and increment the pc
@@ -344,7 +329,7 @@ class CPUCore : public sc_module {
 
       if (instruction.handler != nullptr) {
         if (logging) {
-          std::cout << std::endl << std::setw(8) << sc_time_stamp() << ": "
+          std::cout << std::endl << std::setw(8) << cycles_start << ": "
                     << std::showbase << std::hex
                     << opcode_names[opcode];
         }
@@ -355,18 +340,19 @@ class CPUCore : public sc_module {
         // Call the OPCode handler function
         (reinterpret_cast<Derived*>(this)->*handler)(mode);
 
-        if (logging) {
-          const uint64_t cycles_end = cycle_count;
-          std::cout << std::noshowbase << std::dec
-                    << " (" << cycles_end - cycles_start << " cycles)"
-                    << std::endl;
-        }
       }
       else {
-          std::cout << sc_time_stamp() << ": Unknown opcode "
+          std::cout << cycles_start << ": Unknown opcode "
                     << (int)opcode << std::endl;
           halted = true;
       }
+      const uint64_t cycles_end = cycle_count;
+      if (logging) {
+        std::cout << std::noshowbase << std::dec
+                  << " (" << cycles_end - cycles_start << " cycles)"
+                  << std::endl;
+      }
+      if (max_cycles > 0 && cycles_end > max_cycles) return;
     };
   }
 };

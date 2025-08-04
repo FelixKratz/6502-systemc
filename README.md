@@ -9,7 +9,8 @@ that reflects the original hardware.
 
 - Complete official instruction set
 - Cycle-accurate execution
-- 4x faster than real-time (on an M1 Pro Chip)
+- 7× real-time performance on an M1 Pro with full timing fidelity
+- Up to 230× real-time when cycle timing is disabled (logic-only mode)
 - Only ~1k loc
 - Modular opcode and addressing mode handling
 - Per-instruction cycle logging

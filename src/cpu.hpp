@@ -482,7 +482,7 @@ class CPU : public CPUCore<CPU> {
   };
 
   public:
-  CPU(sc_module_name name) : CPUCore(name) {
+  CPU(sc_module_name name, const sc_event& trigger, Bus* bus) : CPUCore(name, trigger, bus) {
     for (const auto& instruction_group : instruction_set) {
       for (const auto& [opcode, mode] : instruction_group.instructions) {
         opcode_names[opcode] = instruction_group.name;

@@ -4,10 +4,16 @@ int sc_main(int argc, char* argv[]) {
   Simulation simulation(false);
   simulation.load_program_from_disk("bin/6502_functional_test.bin", 0x0400);
   auto start = std::chrono::high_resolution_clock::now();
+
+  // If the cpu mode is set to LogicAccurate we need to also set max_cycles
+  // such that the cpu does not run forever; LogicAccurate gives a 33x speedup
+  simulation.cpu.set_mode(TimingAccurate);
+  simulation.cpu.set_max_cycles(100000000);
+
   simulation.step(100000000);
   auto stop = std::chrono::high_resolution_clock::now();
   std::chrono::duration<double> elapsed = stop - start;
-  std::cout << "Execution took " << elapsed.count() << " seconds (real time)" << std::endl;
+  std::cout << "Execution took " << elapsed.count() << " seconds (real time) and " << simulation.cpu.get_cycle_count() << " cycles" << std::endl;
 
   uint16_t pc = simulation.cpu.copy_registers().pc;
   if (pc >= 0x3469 && pc <= 0x346c) {

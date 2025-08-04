@@ -1,6 +1,6 @@
 export SYSTEMC_DISABLE_COPYRIGHT_MESSAGE=1
 
-COMPILE_FLAGS = -arch arm64 -std=c++17
+COMPILE_FLAGS = -arch arm64 -std=c++17 -g -O3 -DNDEBUG
 SYSTEM_C_PATH = /opt/homebrew/Cellar/systemc/3.0.1/
 
 SRC_DIR = src
