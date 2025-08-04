@@ -4,13 +4,13 @@
 class Memory : public sc_module {
   public:
   struct Input {
-    sc_in<mem_addr_t> address;
-    sc_in<mem_data_t> write_data;
-    sc_in<bool> req, clock, write_flag;
+    sc_core::sc_in<mem_addr_t> address;
+    sc_core::sc_in<mem_data_t> write_data;
+    sc_core::sc_in<bool> req, clock, write_flag;
   } in;
 
   struct Output {
-    sc_out<mem_data_t> read_data;
+    sc_core::sc_out<mem_data_t> read_data;
   } out;
 
   void set_memory(mem_t&& mem) { memory = std::move(mem); }

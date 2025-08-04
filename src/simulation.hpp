@@ -6,11 +6,11 @@ constexpr uint64_t time_per_cycle = 1000; // Measures in ns -> 1MHz
 
 class Simulation {
   private:
-  sc_signal<bool> write_flag, req;
-  sc_signal<mem_addr_t> address;
-  sc_signal<mem_data_t> write_data, read_data;
+  sc_core::sc_signal<bool> write_flag, req;
+  sc_core::sc_signal<mem_addr_t> address;
+  sc_core::sc_signal<mem_data_t> write_data, read_data;
 
-  sc_clock clock;
+  sc_core::sc_clock clock;
 
   void connect() {
     cpu.in.clock(clock);

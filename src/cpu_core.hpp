@@ -8,15 +8,15 @@ class CPUCore : public sc_module {
 
   public:
   struct {
-    sc_in<bool> clock;
-    sc_in<mem_data_t> read_data;
+    sc_core::sc_in<bool> clock;
+    sc_core::sc_in<mem_data_t> read_data;
   } in;
 
   struct {
-    sc_out<bool> req;
-    sc_out<bool> write_flag;
-    sc_out<mem_addr_t> address;
-    sc_out<mem_data_t> write_data;
+    sc_core::sc_out<bool> req;
+    sc_core::sc_out<bool> write_flag;
+    sc_core::sc_out<mem_addr_t> address;
+    sc_core::sc_out<mem_data_t> write_data;
   } out;
 
   CPUCore(sc_module_name name) : sc_module(name) {
