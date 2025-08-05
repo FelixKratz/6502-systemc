@@ -1,4 +1,5 @@
-#include <systemc>
+#include <array>
+#include <cstdint>
 
 using opcode_t   = uint8_t;
 using flag_t     = bool;

@@ -1,49 +1,46 @@
-#include <systemc.h>
+#include <cassert>
+#include <iomanip>
+#include <iostream>
 #include "registers.hpp"
 #include "instruction.hpp"
 #include "bus.hpp"
 
-enum AccuracyMode {
-  TimingAccurate, // All absolute cycle timings are correct
-  LogicAccurate,  // Only the cycle couting is correct, not the cycle timing
-};
+template <class Object>
+class SimulationDriver;
 
 template <class Derived>
-class CPUCore : public sc_module {
+class CPUCore {
   friend Derived;
 
   public:
-  CPUCore(sc_module_name name, const sc_event& trigger, Bus* bus) : sc_module(name), bus(bus) {
-    SC_THREAD(execute);
-    sensitive << trigger;
-  }
+  CPUCore(SimulationDriver<Derived>* driver, Bus* bus) : driver(driver), bus(bus) { }
 
   void set_logging(bool log) { logging = log; };
   void set_registers(Registers& reg) { registers = reg; };
-  void set_mode(AccuracyMode cpu_mode) { accuracy = cpu_mode; }
   void set_max_cycles(uint64_t cycles) { max_cycles = cycles; }
 
   bool is_booted() const { return booted; }
   bool is_halted() const { return halted; };
   Registers copy_registers() const { return registers; };
   uint64_t get_cycle_count() const { return cycle_count; };
-  bool get_accuracy() { return accuracy; }
 
   private:
+  constexpr static double time_per_cycle = 1.0; // Measures in us -> 1MHz
+
+  SimulationDriver<Derived>* driver;
   Bus* bus;
   Registers registers;
-  AccuracyMode accuracy = TimingAccurate;
   bool halted = false, logging = false, booted = false;
   uint64_t cycle_count = 0;
   uint64_t max_cycles = 0;
 
-  std::array<Instruction, 0xff> opcode_map = {};
-  std::array<std::string, 0xff> opcode_names = {};
+  std::array<Instruction, 0x100> opcode_map = {};
+  std::array<std::string, 0x100> opcode_names = {};
 
-  // Just a wrapper around wait to count cpu cycles
+  // A wrapper around wait to count cpu cycles and defer wait to the driver
   void wait() {
     ++cycle_count;
-    if (accuracy == TimingAccurate) sc_core::wait();
+    driver->wait(time_per_cycle);
   }
 
   // Read one byte of memory and dont progress the pc
@@ -317,6 +314,7 @@ class CPUCore : public sc_module {
     booted = true;
   }
 
+  public:
   // Core loop of the CPU
   void execute() {
     boot();

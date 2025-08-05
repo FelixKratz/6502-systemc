@@ -1,3 +1,4 @@
+#include <functional>
 #include "types.hpp"
 
 enum OPCodes : opcode_t {
