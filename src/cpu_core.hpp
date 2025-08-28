@@ -14,10 +14,10 @@ class CPUCore {
 
   public:
   CPUCore(SimulationDriver<Derived>* driver, Bus* bus) : driver(driver), bus(bus) { }
+  void set_driver(SimulationDriver<Derived>* sdriver) { driver = sdriver; };
 
   void set_logging(bool log) { logging = log; };
   void set_registers(Registers& reg) { registers = reg; };
-  void set_max_cycles(uint64_t cycles) { max_cycles = cycles; }
 
   bool is_booted() const { return booted; }
   bool is_halted() const { return halted; };
@@ -32,7 +32,6 @@ class CPUCore {
   Registers registers;
   bool halted = false, logging = false, booted = false;
   uint64_t cycle_count = 0;
-  uint64_t max_cycles = 0;
 
   std::array<Instruction, 0x100> opcode_map = {};
   std::array<std::string, 0x100> opcode_names = {};
@@ -316,7 +315,7 @@ class CPUCore {
 
   public:
   // Core loop of the CPU
-  void execute() {
+  void execute(uint64_t target_cycles = 0) {
     boot();
 
     while (!halted) {
@@ -350,7 +349,7 @@ class CPUCore {
                   << " (" << cycles_end - cycles_start << " cycles)"
                   << std::endl;
       }
-      if (max_cycles > 0 && cycles_end > max_cycles) return;
+      if (target_cycles > 0 && cycles_end > target_cycles) return;
     };
   }
 };

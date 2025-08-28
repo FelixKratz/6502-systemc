@@ -1,7 +1,7 @@
 #include <systemc>
 
 template <class Object>
-using DriverHandlerFunction = void(Object::*)();
+using DriverHandlerFunction = void(Object::*)(uint64_t);
 
 template <class Object>
 class SimulationDriver {
@@ -20,7 +20,7 @@ class SystemCSimulationDriver : public SimulationDriver<Object>, public sc_core:
   private:
 
   void systemc_thread() {
-    (SimulationDriver<Object>::object->*SimulationDriver<Object>::handler)();
+    (SimulationDriver<Object>::object->*SimulationDriver<Object>::handler)(0);
   }
 
   virtual void wait(double delta) override {
@@ -39,6 +39,13 @@ class SystemCSimulationDriver : public SimulationDriver<Object>, public sc_core:
 
 template <class Object>
 class ManualSimulationDriver : public SimulationDriver<Object> {
+  public:
+
   virtual void wait(double delta) override {};
-  virtual void step(double delta) override {};
+  virtual void step(uint64_t delta) override {
+    (SimulationDriver<Object>::object->*SimulationDriver<Object>::handler)(delta);
+  };
+
+  ManualSimulationDriver(Object* object, DriverHandlerFunction<Object> handler, std::string name) : SimulationDriver<Object>(object, handler, name) {
+   }
 };
