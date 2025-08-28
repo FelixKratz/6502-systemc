@@ -2,6 +2,7 @@
 
 int sc_main(int argc, char* argv[]) {
   Simulation simulation(false);
+  simulation.set_mode(SimulationMode::LogicAccurate);
   simulation.load_program_from_disk("bin/6502_functional_test.bin", 0x0400);
 
   sc_core::sc_time sc_start = sc_core::sc_time_stamp();
